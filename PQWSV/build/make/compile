@@ -1,0 +1,1 @@
+make mvdsv FORCE32BITFLAGS=-m32 -B
