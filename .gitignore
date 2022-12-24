@@ -1,0 +1,10 @@
+**/*.a
+**/*.o
+
+PQWSV/bin/*
+PQWSV/config/*
+PQWSV/doc/*
+PQWSV/lib/*
+
+**/*.qcp
+
