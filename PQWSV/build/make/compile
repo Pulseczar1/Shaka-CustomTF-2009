@@ -1,1 +1,5 @@
+#!/usr/bin/env bash
+PATH_TO_QUAKE_DIRECTORY="../../../../"
+
 make mvdsv FORCE32BITFLAGS=-m32 -B
+mv mvdsv $PATH_TO_QUAKE_DIRECTORY
