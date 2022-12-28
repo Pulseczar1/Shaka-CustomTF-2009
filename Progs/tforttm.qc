@@ -227,10 +227,13 @@ void(entity p) SetTeamName =
 {
 	local string st;
 
-	stuffcmd(p, "team ");
+	// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+	//     themselves, to keep from having to kick them when they do.
+	//stuffcmd(p, "team ");
 	st = GetTeamName(p.team_no);
-	stuffcmd(p, st);
-	stuffcmd(p, "\n");
+	setinfo(p, "team", st);
+	//stuffcmd(p, st);
+	//stuffcmd(p, "\n");
 };
 #endif
 
@@ -321,15 +324,17 @@ float(float tno) TeamFortress_TeamSet =
 		//self.immune_to_check = time + 10;
 
 		// Set the player's color
-		stuffcmd(self, "color ");
+		// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+		//     themselves, to keep from having to kick them when they do.
+		//stuffcmd(self, "color ");
 		tc = TeamFortress_TeamGetColor(tno) - 1;
 		st = ftos(tc);
-
 		 //- OfN - Nice colors
-		if (nicecolors==1) st =TeamGetNiceColor(tno);
-
-		stuffcmd(self, st);
-		stuffcmd(self, "\n");
+		if (nicecolors==1) st = TeamGetNiceColor(tno);
+		setinfo(self, "topcolor", st);    // PZ
+		setinfo(self, "bottomcolor", st); // PZ
+		//stuffcmd(self, st);
+		//stuffcmd(self, "\n");
 
 		self.team_no = tno;
 		self.connect_time = time; //WK 5-15-08 Start their time they "connected" from the time they joined the team. This gets reset if they switch teams to stop abuse from joining a team to force a reteam of someone on the other side.
@@ -370,20 +375,22 @@ float(float tno) TeamFortress_TeamSet =
 	#endif
 	
 	// Set the player's color
-	stuffcmd(self, "color ");
+	// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+	//     themselves, to keep from having to kick them when they do.
+	//stuffcmd(self, "color ");
 	tc = TeamFortress_TeamGetColor(tno) - 1;
 	st = ftos(tc);
-
 	//- OfN - Nice colors
-	if (nicecolors==1) st =TeamGetNiceColor(tno);
-
-	stuffcmd(self, st);
-	stuffcmd(self, "\n");
+	if (nicecolors==1) st = TeamGetNiceColor(tno);
+	setinfo(self, "topcolor", st);    // PZ
+	setinfo(self, "bottomcolor", st); // PZ
+	//stuffcmd(self, st);
+	//stuffcmd(self, "\n");
 
 	self.team_no = tno;
 	self.connect_time = time; //WK 5-15-08 Start their time they "connected" from the time they joined the team. This gets reset if they switch teams to stop abuse from joining a team to force a reteam of someone on the other side.
 
-	// Prevent the cheatchecking mechanism from nabbing them b4 the 
+	// Prevent the cheatchecking mechanism from nabbing them b4 the
 	// color command works.
 	makeImmune(self,time+10);
 	//self.immune_to_check = time + 10;
@@ -657,7 +664,7 @@ void() TeamFortress_CheckTeamCheats =
 				tc = TeamFortress_TeamGetColor(self.undercover_team) - 1;
 				st = ftos(tc);
 				//- OfN - Nice colors
-				if (nicecolors==1) st =TeamGetNiceColor(self.undercover_team);
+				if (nicecolors==1) st = TeamGetNiceColor(self.undercover_team);
 				setinfo(self, "topcolor", st);    // PZ
 				setinfo(self, "bottomcolor", st); // PZ
 				//stuffcmd(self, st);

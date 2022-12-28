@@ -1385,14 +1385,16 @@ void() BastardTimer =
 		//stuffcmd(te, "\"\n");
 
 		//Reset their color
-		stuffcmd(te, "color ");
+		// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+		//     themselves, to keep from having to kick them when they do.
+		//stuffcmd(te, "color ");
 		st = ftos(TeamFortress_TeamGetColor(te.team_no) - 1);
-		
 		//- OfN - Nice colors
 		if (nicecolors==1) st =TeamGetNiceColor(te.team_no);
-
-		stuffcmd(te, st);
-		stuffcmd(te, "\n");
+		setinfo(te, "topcolor", st);    // PZ
+		setinfo(te, "bottomcolor", st); // PZ
+		//stuffcmd(te, st);
+		//stuffcmd(te, "\n");
 
 		bprint (#PRINT_MEDIUM, te.netname);
 		bprint (#PRINT_MEDIUM, " has his teamkill curse removed\n");
@@ -1407,10 +1409,16 @@ void() BastardTimer =
 		return;
 	}
 
+	// PZ NOTE: *sigh* It took me forever to figure out where a teamkiller's color is set to pink.
 	if (random() > 0.5) 
 		stuffcmd(te, "cl_yawspeed 500;-left;+right;color 8 8\n");
 	else
 		stuffcmd(te, "cl_yawspeed 500;-right;+left;color 8 8\n"); // <-- was 9 9
+	// PZ: Players can no longer change their color, team, or skin manually, via console/script/stuffcmd(). Created setinfo()
+	//     for this purpose. This keeps players from accidentally changing these things and getting kicked from the server, probably
+	//     usually due to autoexecution of .cfg files by their client.
+	setinfo(te, "topcolor", "8");
+	setinfo(te, "bottomcolor", "8");
 	//te.immune_to_check = time + 5;
 	te.ammo_rockets = 0;
 	te.ammo_cells = 0;

@@ -3403,22 +3403,30 @@ void() PlayerPostThink =
 			if (self.option2 == #TRUE)
 			{
 				if (self.dont_do_triggerwork == 1)
-					stuffcmd(self,"team kick\n");
+					// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+					//     themselves, to keep from having to kick them when they do.
+					//stuffcmd(self,"team kick\n");
+					setinfo(self, "team", "kick");  // PZ
 				else if (self.dont_do_triggerwork == 2)
-					stuffcmd(self,"team ban\n");
+					//stuffcmd(self,"team ban\n");
+					setinfo(self, "team", "ban");   // PZ
 				else
-					stuffcmd(self,"team serm\n");
+					//stuffcmd(self,"team serm\n");
+					setinfo(self, "team", "serm");  // PZ
 				
 				self.option2 = #FALSE;
 			}		   
 			else
 			{
 				if (self.dont_do_triggerwork == 1)
-					stuffcmd(self,"team \"λιγλ\"\n");
+					//stuffcmd(self,"team \"λιγλ\"\n");
+					setinfo(self, "team", "λιγλ");  // PZ
 				else if (self.dont_do_triggerwork == 2)
-					stuffcmd(self,"team \"βαξ\"\n");
+					//stuffcmd(self,"team \"βαξ\"\n");
+					setinfo(self, "team", "βαξ");   // PZ
 				else
-					stuffcmd(self,"team \"σεςν\"\n");
+					//stuffcmd(self,"team \"σεςν\"\n");
+					setinfo(self, "team", "σεςν");  // PZ
 				
 				self.option2 = #TRUE;
 			}		   
@@ -3531,8 +3539,17 @@ void() ClientConnect =
 	// This gets overwritten when they join a team (so time spent observing doesn't count)
 	self.connect_time = time;
 
-	// PZ: make their team name blank when they join the server
-	stuffcmd(self, "team \"\"\n");
+	// PZ: make their team name and color blank when they join the server
+	if (teamplay) // PZ: only if we have teams
+	{
+		// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+		//     themselves, to keep from having to kick them when they do.
+		//stuffcmd(self, "team \"\"\n");
+		setinfo(self, "team", "");
+		//stuffcmd(self, "color \"0 0\"\n");
+		setinfo(self, "topcolor", "0");
+		setinfo(self, "bottomcolor", "0");
+	}
 	
 	//- OfN
 	self.admin_kick = world;

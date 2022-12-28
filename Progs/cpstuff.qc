@@ -1923,14 +1923,21 @@ void(entity player, string st, float action, float predefined) PlayerFinal =
 	self.health = 0;
 	self.deadflag = #DEAD_DEAD; 
 
-	stuffcmd(self,"color 1 1\n");
+	// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+	//     themselves, to keep from having to kick them when they do.
+	//stuffcmd(self,"color 1 1\n");
+	setinfo(self, "topcolor", "1");    // PZ
+	setinfo(self, "bottomcolor", "1"); // PZ
 
 	if (action == 1)
-		stuffcmd(self,"team kick\n");
+		//stuffcmd(self,"team kick\n");
+		setinfo(self, "team", "kick"); // PZ
 	else if (action == 2)
-		stuffcmd(self,"team ban\n");
+		//stuffcmd(self,"team ban\n");
+		setinfo(self, "team", "ban");  // PZ
 	else
-		stuffcmd(self,"team serm\n");
+		//stuffcmd(self,"team serm\n");
+		setinfo(self, "team", "serm"); // PZ
 
 	if (action == 2)
 		sprint(self,#PRINT_HIGH,"You are going to be banned after reading the sermon, if you disconnect you will be banned anyway, so better read it!\n");

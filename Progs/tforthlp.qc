@@ -69,10 +69,14 @@ void() TeamFortress_MOTD =
 		// Set their color to white, so they stand out from teams
 		if ((teamplay != 0) && (self.team_no == 0))
 		{
-			stuffcmd(self, "color ");
+			// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+			//     themselves, to keep from having to kick them when they do.
+			//stuffcmd(self, "color ");
 			ya = ftos(#WHITE - 1);
-			stuffcmd(self, ya);
-			stuffcmd(self, "\n");
+			setinfo(self, "topcolor", ya);
+			setinfo(self, "bottomcolor", ya);
+			//stuffcmd(self, ya);
+			//stuffcmd(self, "\n");
 		}
 
 /*		if (self.got_aliases == #FALSE)

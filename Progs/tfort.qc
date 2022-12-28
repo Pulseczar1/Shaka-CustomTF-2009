@@ -1934,9 +1934,11 @@ void(entity p) TeamFortress_SetSkin =
 #ifdef QUAKE_WORLD
 	if (p.skin != #PC_UNDEFINED)
 	{
-		stuffcmd(p, "skin ");
+		// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+		//     themselves, to keep from having to kick them when they do.
+		//stuffcmd(p, "skin ");
 
-	//WK Figure out what Mr.Custom Should look like
+		//WK Figure out what Mr.Custom Should look like
 		if (p.playerclass == #PC_CUSTOM && p.undercover_skin == 0)
 		{
 			p.skin = Return_Custom_Skins(p); //CH
@@ -1945,94 +1947,132 @@ void(entity p) TeamFortress_SetSkin =
 		if ( p.team_no == 4)
 		{
 			if ( p.skin == #PC_SCOUT )
-				stuffcmd(p, #TEAM4_SCOUT_SKIN);
+				//stuffcmd(p, #TEAM4_SCOUT_SKIN);
+				setinfo(p, "skin", #TEAM4_SCOUT_SKIN); // PZ: see above
 			else if ( p.skin == #PC_SNIPER )
-				stuffcmd(p, #TEAM4_SNIPER_SKIN);
+				//stuffcmd(p, #TEAM4_SNIPER_SKIN);
+				setinfo(p, "skin", #TEAM4_SNIPER_SKIN); // PZ: see above
 			else if ( p.skin == #PC_SOLDIER )
-				stuffcmd(p, #TEAM4_SOLDIER_SKIN);
+				//stuffcmd(p, #TEAM4_SOLDIER_SKIN);
+				setinfo(p, "skin", #TEAM4_SOLDIER_SKIN); // PZ: see above
 			else if ( p.skin == #PC_DEMOMAN )
-				stuffcmd(p, #TEAM4_DEMOMAN_SKIN);
+				//stuffcmd(p, #TEAM4_DEMOMAN_SKIN);
+				setinfo(p, "skin", #TEAM4_DEMOMAN_SKIN); // PZ: see above
 			else if ( p.skin == #PC_MEDIC )
-				stuffcmd(p, #TEAM4_MEDIC_SKIN);
+				//stuffcmd(p, #TEAM4_MEDIC_SKIN);
+				setinfo(p, "skin", #TEAM4_MEDIC_SKIN); // PZ: see above
 			else if ( p.skin == #PC_HVYWEAP )
-				stuffcmd(p, #TEAM4_HVYWEAP_SKIN);
+				//stuffcmd(p, #TEAM4_HVYWEAP_SKIN);
+				setinfo(p, "skin", #TEAM4_HVYWEAP_SKIN); // PZ: see above
 			else if ( p.skin == #PC_PYRO )
-				stuffcmd(p, #TEAM4_PYRO_SKIN);
+				//stuffcmd(p, #TEAM4_PYRO_SKIN);
+				setinfo(p, "skin", #TEAM4_PYRO_SKIN); // PZ: see above
 			else if ( p.skin == #PC_SPY )
-				stuffcmd(p, #TEAM4_SPY_SKIN);
+				//stuffcmd(p, #TEAM4_SPY_SKIN);
+				setinfo(p, "skin", #TEAM4_SPY_SKIN); // PZ: see above
 			else if ( p.skin == #PC_ENGINEER )
-				stuffcmd(p, #TEAM4_ENGINEER_SKIN);
+				//stuffcmd(p, #TEAM4_ENGINEER_SKIN);
+				setinfo(p, "skin", #TEAM4_ENGINEER_SKIN); // PZ: see above
 		}
 		else if ( p.team_no == 3)
 		{
 			if ( p.skin == #PC_SCOUT )
-				stuffcmd(p, #TEAM3_SCOUT_SKIN);
+				//stuffcmd(p, #TEAM3_SCOUT_SKIN);
+				setinfo(p, "skin", #TEAM3_SCOUT_SKIN); // PZ: see above
 			else if ( p.skin == #PC_SNIPER )
-				stuffcmd(p, #TEAM3_SNIPER_SKIN);
+				//stuffcmd(p, #TEAM3_SNIPER_SKIN);
+				setinfo(p, "skin", #TEAM3_SNIPER_SKIN); // PZ: see above
 			else if ( p.skin == #PC_SOLDIER )
-				stuffcmd(p, #TEAM3_SOLDIER_SKIN);
+				//stuffcmd(p, #TEAM3_SOLDIER_SKIN);
+				setinfo(p, "skin", #TEAM3_SOLDIER_SKIN); // PZ: see above
 			else if ( p.skin == #PC_DEMOMAN )
-				stuffcmd(p, #TEAM3_DEMOMAN_SKIN);
+				//stuffcmd(p, #TEAM3_DEMOMAN_SKIN);
+				setinfo(p, "skin", #TEAM3_DEMOMAN_SKIN); // PZ: see above
 			else if ( p.skin == #PC_MEDIC )
-				stuffcmd(p, #TEAM3_MEDIC_SKIN);
+				//stuffcmd(p, #TEAM3_MEDIC_SKIN);
+				setinfo(p, "skin", #TEAM3_MEDIC_SKIN); // PZ: see above
 			else if ( p.skin == #PC_HVYWEAP )
-				stuffcmd(p, #TEAM3_HVYWEAP_SKIN);
+				//stuffcmd(p, #TEAM3_HVYWEAP_SKIN);
+				setinfo(p, "skin", #TEAM3_HVYWEAP_SKIN); // PZ: see above
 			else if ( p.skin == #PC_PYRO )
-				stuffcmd(p, #TEAM3_PYRO_SKIN);
+				//stuffcmd(p, #TEAM3_PYRO_SKIN);
+				setinfo(p, "skin", #TEAM3_PYRO_SKIN); // PZ: see above
 			else if ( p.skin == #PC_SPY )
-				stuffcmd(p, #TEAM3_SPY_SKIN);
+				//stuffcmd(p, #TEAM3_SPY_SKIN);
+				setinfo(p, "skin", #TEAM3_SPY_SKIN); // PZ: see above
 			else if ( p.skin == #PC_ENGINEER )
-				stuffcmd(p, #TEAM3_ENGINEER_SKIN);
+				//stuffcmd(p, #TEAM3_ENGINEER_SKIN);
+				setinfo(p, "skin", #TEAM3_ENGINEER_SKIN); // PZ: see above
 		}
 		else if ( p.team_no == 2)
 		{
 			if ( p.skin == #PC_SCOUT )
-				stuffcmd(p, #TEAM2_SCOUT_SKIN);
+				//stuffcmd(p, #TEAM2_SCOUT_SKIN);
+				setinfo(p, "skin", #TEAM2_SCOUT_SKIN); // PZ: see above
 			else if ( p.skin == #PC_SNIPER )
-				stuffcmd(p, #TEAM2_SNIPER_SKIN);
+				//stuffcmd(p, #TEAM2_SNIPER_SKIN);
+				setinfo(p, "skin", #TEAM2_SNIPER_SKIN); // PZ: see above
 			else if ( p.skin == #PC_SOLDIER )
-				stuffcmd(p, #TEAM2_SOLDIER_SKIN);
+				//stuffcmd(p, #TEAM2_SOLDIER_SKIN);
+				setinfo(p, "skin", #TEAM2_SOLDIER_SKIN); // PZ: see above
 			else if ( p.skin == #PC_DEMOMAN )
-				stuffcmd(p, #TEAM2_DEMOMAN_SKIN);
+				//stuffcmd(p, #TEAM2_DEMOMAN_SKIN);
+				setinfo(p, "skin", #TEAM2_DEMOMAN_SKIN); // PZ: see above
 			else if ( p.skin == #PC_MEDIC )
-				stuffcmd(p, #TEAM2_MEDIC_SKIN);
+				//stuffcmd(p, #TEAM2_MEDIC_SKIN);
+				setinfo(p, "skin", #TEAM2_MEDIC_SKIN); // PZ: see above
 			else if ( p.skin == #PC_HVYWEAP )
-				stuffcmd(p, #TEAM2_HVYWEAP_SKIN);
+				//stuffcmd(p, #TEAM2_HVYWEAP_SKIN);
+				setinfo(p, "skin", #TEAM2_HVYWEAP_SKIN); // PZ: see above
 			else if ( p.skin == #PC_PYRO )
-				stuffcmd(p, #TEAM2_PYRO_SKIN);
+				//stuffcmd(p, #TEAM2_PYRO_SKIN);
+				setinfo(p, "skin", #TEAM2_PYRO_SKIN); // PZ: see above
 			else if ( p.skin == #PC_SPY )
-				stuffcmd(p, #TEAM2_SPY_SKIN);
+				//stuffcmd(p, #TEAM2_SPY_SKIN);
+				setinfo(p, "skin", #TEAM2_SPY_SKIN); // PZ: see above
 			else if ( p.skin == #PC_ENGINEER )
-				stuffcmd(p, #TEAM2_ENGINEER_SKIN);
+				//stuffcmd(p, #TEAM2_ENGINEER_SKIN);
+				setinfo(p, "skin", #TEAM2_ENGINEER_SKIN); // PZ: see above
 		}
 		else // if ( p.team_no == 1)
 		{
 			if ( p.skin == #PC_SCOUT )
-				stuffcmd(p, #TEAM1_SCOUT_SKIN);
+				//stuffcmd(p, #TEAM1_SCOUT_SKIN);
+				setinfo(p, "skin", #TEAM1_SCOUT_SKIN); // PZ: see above
 			else if ( p.skin == #PC_SNIPER )
-				stuffcmd(p, #TEAM1_SNIPER_SKIN);
+				//stuffcmd(p, #TEAM1_SNIPER_SKIN);
+				setinfo(p, "skin", #TEAM1_SNIPER_SKIN); // PZ: see above
 			else if ( p.skin == #PC_SOLDIER )
-				stuffcmd(p, #TEAM1_SOLDIER_SKIN);
+				//stuffcmd(p, #TEAM1_SOLDIER_SKIN);
+				setinfo(p, "skin", #TEAM1_SOLDIER_SKIN); // PZ: see above
 			else if ( p.skin == #PC_DEMOMAN )
-				stuffcmd(p, #TEAM1_DEMOMAN_SKIN);
+				//stuffcmd(p, #TEAM1_DEMOMAN_SKIN);
+				setinfo(p, "skin", #TEAM1_DEMOMAN_SKIN); // PZ: see above
 			else if ( p.skin == #PC_MEDIC )
-				stuffcmd(p, #TEAM1_MEDIC_SKIN);
+				//stuffcmd(p, #TEAM1_MEDIC_SKIN);
+				setinfo(p, "skin", #TEAM1_MEDIC_SKIN); // PZ: see above
 			else if ( p.skin == #PC_HVYWEAP )
-				stuffcmd(p, #TEAM1_HVYWEAP_SKIN);
+				//stuffcmd(p, #TEAM1_HVYWEAP_SKIN);
+				setinfo(p, "skin", #TEAM1_HVYWEAP_SKIN); // PZ: see above
 			else if ( p.skin == #PC_PYRO )
-				stuffcmd(p, #TEAM1_PYRO_SKIN);
+				//stuffcmd(p, #TEAM1_PYRO_SKIN);
+				setinfo(p, "skin", #TEAM1_PYRO_SKIN); // PZ: see above
 			else if ( p.skin == #PC_SPY )
-				stuffcmd(p, #TEAM1_SPY_SKIN);
+				//stuffcmd(p, #TEAM1_SPY_SKIN);
+				setinfo(p, "skin", #TEAM1_SPY_SKIN); // PZ: see above
 			else if ( p.skin == #PC_ENGINEER )
-				stuffcmd(p, #TEAM1_ENGINEER_SKIN);
+				//stuffcmd(p, #TEAM1_ENGINEER_SKIN);
+				setinfo(p, "skin", #TEAM1_ENGINEER_SKIN); // PZ: see above
 		}
 
 		if ( p.skin == #PC_CIVILIAN )
-			stuffcmd(p, "base\n"); // Need a civilian skin
+			//stuffcmd(p, "base\n"); // Need a civilian skin
+			setinfo(p, "skin", "base"); // PZ: see above
 	}
 	else
 	{
-		stuffcmd(p, "skin base\n"); //WK Need a custom skin, or fake it
+		//stuffcmd(p, "skin base\n"); //WK Need a custom skin, or fake it
+		setinfo(p, "skin", "base"); // PZ: see above
 	}
 #endif
 };
@@ -2106,14 +2146,17 @@ void() TeamFortress_SetEquipment =
 		//self.immune_to_check = time + 4;
 
 		self.undercover_team = 0;
-		// Set their color 
-		stuffcmd(self, "color ");
+		// Set their color
+		// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+		//     themselves, to keep from having to kick them when they do.
+		//stuffcmd(self, "color ");
 		st = ftos(TeamFortress_TeamGetColor(self.team_no) - 1);
 		 //- OfN - Nice colors
-		if (nicecolors==1) st =TeamGetNiceColor(self.team_no);
-
-		stuffcmd(self, st);
-		stuffcmd(self, "\n");
+		if (nicecolors==1) st = TeamGetNiceColor(self.team_no);
+		setinfo(self, "topcolor", st);    // PZ
+		setinfo(self, "bottomcolor", st); // PZ
+		//stuffcmd(self, st);
+		//stuffcmd(self, "\n");
 	}
 
 	self.is_building = 0;
@@ -4183,6 +4226,8 @@ void() PlayerObserverMode =
 	sprint (self, #PRINT_HIGH, "Observer mode\n");
 	CenterPrint(self, "\n");
 	stuffcmd(self, "color 0; wait; cl_rollangle 0\n");
+	setinfo(self, "topcolor", "0");    // PZ: player can no longer use the 'color', 'skin', and 'team' commands
+	setinfo(self, "bottomcolor", "0"); // PZ
 };
 
 //============================================================================
