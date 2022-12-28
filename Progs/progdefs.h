@@ -252,6 +252,9 @@
 #define PR_COLSTR_MIX2                          3                                                                                                                                             
 #define PR_COLSTR_NUMBER                        4                                                                                                                                             
 #define PR_COLSTR_NUMBERV                       5                                                                                                                                             
+#define PR_VALIDATED_NOT_VALID                  0                                                                                                                                             
+#define PR_VALIDATED_SPECIAL_FOLDER             1                                                                                                                                             
+#define PR_VALIDATED_MAPS_FOLDER                2                                                                                                                                             
 #define PR_GWAVE_STANDARD                       0                                                                                                                                             
 #define PR_GWAVE_USEMINMAX                      1                                                                                                                                             
 #define PR_GWAVE_USEBALANCE                     2                                                                                                                                             
@@ -2110,4 +2113,4 @@ typedef struct
 	string_t  noise3;
 } entvars_t;
 
-#define PROGHEADER_CRC 65101
+#define PROGHEADER_CRC 25599

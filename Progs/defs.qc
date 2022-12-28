@@ -703,7 +703,7 @@ float		deathmatch;
 // builtin functions
 //
 
-void(vector ang)	makevectors 		= #1;		// sets v_forward, etc globals
+void(vector ang)	makevectors			= #1;		// sets v_forward, etc globals
 void(entity e, vector o) setorigin		= #2;
 void(entity e, string m) setmodel		= #3;		// set movetype and solid first
 void(entity e, vector min, vector max) setsize = #4;
@@ -713,7 +713,7 @@ float() random					= #7;		// returns 0 - 1
 void(entity e, float chan, string samp, float vol, float atten) sound = #8;
 vector(vector v) normalize			= #9;
 void(string e) error				= #10;
-void(string e) objerror 			= #11;
+void(string e) objerror				= #11;
 float(vector v) vlen				= #12;
 float(vector v) vectoyaw			= #13;
 entity() spawn					= #14;
@@ -728,16 +728,16 @@ void(vector v1, vector v2, float nomonsters, entity forent) traceline = #16;
 
 entity() checkclient				= #17;	// returns a client to look for
 entity(entity start, .string fld, string match) find = #18;
-string(string s) precache_sound 	= #19;
-string(string s) precache_model 	= #20;
-void(entity client, string s)stuffcmd	= #21;
+string(string s) precache_sound		= #19;
+string(string s) precache_model		= #20;
+void(entity client, string s)stuffcmd 	= #21;
 entity(vector org, float rad) findradius  = #22;
 
 #ifndef QUAKE_WORLD
-//void(string s) bprint 			= #23;
-//void(entity client, string s) sprint	= #24;
+//void(string s) bprint				= #23;
+//void(entity client, string s) sprint 	= #24;
 void(...) nqw_bprint				= #23;
-void(...) nqw_sprint				= #24;
+void(...) nqw_sprint 				= #24;
 
 // used for QW compatibility
 /*
@@ -768,25 +768,25 @@ void(float level, string s1, string s2, string s3, string s4, string s5, string 
 //void(float level, string s) bprint	= #23;
 //void(entity client, float level, string s) sprint = #24;
 void(...) bprint					= #23;
-void(...) sprint					= #24;
+void(...) sprint 					= #24;
 
 void(...) bprint2					= #23;
-void(...) sprint2				= #24;
+void(...) sprint2 				= #24;
 
 void(...) bprint3					= #23;
-void(...) sprint3				= #24;
+void(...) sprint3 				= #24;
 
 void(...) bprint4					= #23;
-void(...) sprint4				= #24;
+void(...) sprint4 				= #24;
 
 void(...) bprint5					= #23;
-void(...) sprint5				= #24;
+void(...) sprint5 				= #24;
 
 void(...) bprint6					= #23;
-void(...) sprint6				= #24;
+void(...) sprint6 				= #24;
 
 void(...) bprint7					= #23;
-void(...) sprint7				= #24;
+void(...) sprint7 				= #24;
 
 void(...) bprint8					= #23;
 #endif
@@ -794,28 +794,28 @@ void(...) bprint8					= #23;
 void(string s) dprint				= #25;
 string(float f) ftos				= #26;
 string(vector v) vtos				= #27;
-void() coredump 				= #28;		// prints all edicts
+void() coredump					= #28;		// prints all edicts
 void() traceon					= #29;		// turns statment trace on
-void() traceoff 				= #30;
+void() traceoff					= #30;
 void(entity e) eprint				= #31;		// prints an entire edict
 float(float yaw, float dist) walkmove	= #32;	// returns #TRUE or #FALSE
 // #33 was removed
 float() droptofloor= #34;	// #TRUE if landed on floor
 void(float style, string value) lightstyle = #35;
-float(float v) rint 			= #36;		// round to nearest int
+float(float v) rint				= #36;		// round to nearest int
 float(float v) floor				= #37;		// largest integer <= v
-float(float v) ceil 			= #38;		// smallest integer >= v
+float(float v) ceil				= #38;		// smallest integer >= v
 // #39 was removed
-float(entity e) checkbottom 		= #40;		// true if self is on ground
+float(entity e) checkbottom			= #40;		// true if self is on ground
 float(vector v) pointcontents			= #41;		// returns a CONTENT_*
 // #42 was removed
 float(float f) fabs 				= #43;
-vector(entity e, float speed) aim		= #44;		// returns the shooting vector
-float(string s) cvar				= #45;		// return cvar.value
+vector(entity e, float speed) aim 		= #44;		// returns the shooting vector
+float(string s) cvar 				= #45;		// return cvar.value
 void(string s) localcmd 			= #46;		// put string into local que
-entity(entity e) nextent			= #47;		// for looping through all ents
+entity(entity e) nextent 			= #47;		// for looping through all ents
 void(vector o, vector d, float color, float count) particle = #48;// start a particle effect
-void() ChangeYaw					= #49;		// turn towards self.ideal_yaw
+void() ChangeYaw 					= #49;		// turn towards self.ideal_yaw
 										// at self.yaw_speed
 // #50 was removed
 vector(vector v) vectoangles			= #51;
@@ -833,15 +833,15 @@ void(float to, string s) WriteString	= #58;
 void(float to, entity s) WriteEntity	= #59;
 
 
-void(float step) movetogoal 		= #67;
+void(float step) movetogoal			= #67;
 
 string(string s) precache_file		= #68;	// no effect except for -copy
 void(entity e) makestatic			= #69;
-void(string s) changelevel			= #70;
+void(string s) changelevel 			= #70;
 
 //#71 was removed
 
-void(string var, string val) cvar_set	= #72;	// sets cvar.value
+void(string var, string val) cvar_set 	= #72;	// sets cvar.value
 
 //void(entity client, string s) centerprint = #73;	// sprint, but in middle
 void(...) centerprint = #73;
@@ -854,7 +854,7 @@ void(vector pos, string samp, float vol, float atten) ambientsound = #74;
 
 string(string s) precache_model2		= #75;		// registered version only
 string(string s) precache_sound2		= #76;		// registered version only
-string(string s) precache_file2 	= #77;		// registered version only
+string(string s) precache_file2		= #77;		// registered version only
 
 void(entity e) setspawnparms			= #78;		// set parm1... to the
 												// values at level start
@@ -864,47 +864,117 @@ void(entity e) setspawnparms			= #78;		// set parm1... to the
 void(entity killer, entity killee) logfrag = #79;	// add to stats
 string(entity e, string key) infokey	= #80;		// get a key value (world = serverinfo)
 float(string s) stof				= #81;		// convert string to float
-void(vector where, float set) multicast 	= #82;	// sends the temp message to a set
+void(vector where, float set) multicast 	= #82;  // sends the temp message to a set
 												// of clients, possibly in PVS or PHS
 #endif
 
 // OfN - Stuff added to cpqwsv for prozac
-float(entity client) getuid = #128;//83;
-string(string st1, string st2) strcat = #115;//84;
-string(string st, float len) padstr = #130;//85;
-string(string srcstr, float action) colstr = #131;//86;
+#ifdef OLD_BUILTINS
+
+float(entity client) getuid = #83;
+string(string st1, string st2) strcat = #84;
+string(string st, float len) padstr = #85;
+string(string srcstr, float action) colstr = #86;
 
 // colstr() possible action values
 #define COLSTR_WHITE   0 // converts any red chars to white
 #define COLSTR_MIX1    1 // mix red and white chars
-#define COLSTR_RED	   2 // converts any white chars to red
+#define COLSTR_RED     2 // converts any white chars to red
 #define COLSTR_MIX2    3 // mix red and white chars
 #define COLSTR_NUMBER  4 // converts any numbers to special number chars
 #define COLSTR_NUMBERV 5 // second variant of special number chars (only different on rare charsets)
 
-float(string st1, string st2) strcasecmp = #132;//87;
-float(string st) strlen = #133;//88;
-entity(string st) getclient = #134;//89;
+float(string st1, string st2) strcasecmp = #87;
+float(string st) strlen = #88;
+entity(string st) getclient = #89;
 
-float(entity client) mutedtime = #135;//90;
-float(string st) validatefile = #136;//91;
-void(entity client) putsaytime = #137;//92;
+float(entity client) mutedtime = #90;
+float(string st) validatefile = #91;
+void(entity client) putsaytime = #92;
 
-string(string st) makestr = #138;//93;
-void(string st) delstr = #139;//94;
+string(string st) makestr = #93;
+void(string st) delstr = #94;
 
-float(float inputnum, float modes, float minnum, float maxnum, float balance, float offset, float shape) getwave = #140;//95;
+float(float inputnum, float modes, float minnum, float maxnum, float balance, float offset, float shape) getwave = #95;
 
 // GetWave possible mode flags
-#define GWAVE_STANDARD	  0
+#define GWAVE_STANDARD    0
 #define GWAVE_USEMINMAX   1
 #define GWAVE_USEBALANCE  2 // TODO: Unimplemented yet
 #define GWAVE_USEOFFSET   4
-#define GWAVE_USESHAPE	  8
+#define GWAVE_USESHAPE    8
 
-void(entity e, float chan, string samp, float vol, float atten) clientsound = #141;//96;
+void(entity e, float chan, string samp, float vol, float atten) clientsound = #96;
 
-//void() touchworld = #97;
+void() touchworld = #97;
+string() getlocaltime = #98;
+
+void(entity client, string key, string value) setinfo = #99;
+
+#else // Follows the new built-ins assigments on new server (PQWSV)
+
+float(entity client) getuid = #128;
+string(string st1, string st2) strcat = #129;
+string(string st, float len) padstr = #130;
+string(string srcstr, float action) colstr = #131;
+
+// colstr() possible action values
+#define COLSTR_WHITE   0 // converts any red chars to white
+#define COLSTR_MIX1    1 // mix red and white chars
+#define COLSTR_RED     2 // converts any white chars to red
+#define COLSTR_MIX2    3 // mix red and white chars
+#define COLSTR_NUMBER  4 // converts any numbers to special number chars
+#define COLSTR_NUMBERV 5 // second variant of special number chars (only different on rare charsets)
+
+float(string st1, string st2) strcasecmp = #132;
+float(string st) strlen = #133;
+entity(string st) getclient = #134;
+
+float(entity client) mutedtime = #135;
+float(string st) validatefile = #136;
+
+#define VALIDATED_NOT_VALID         0 // Has nothing to do with the actual built-in
+#define VALIDATED_SPECIAL_FOLDER    1 // Has nothing to do with the actual built-in
+#define VALIDATED_MAPS_FOLDER       2 // Has nothing to do with the actual built-in
+
+void(entity client) putsaytime = #137;
+
+string(string st) makestr = #138;
+void(string st) delstr = #139;
+
+float(float inputnum, float modes, float minnum, float maxnum, float balance, float offset, float shape) getwave = #140;
+
+// GetWave possible mode flags
+#define GWAVE_STANDARD    0
+#define GWAVE_USEMINMAX   1
+#define GWAVE_USEBALANCE  2 // TODO: Unimplemented yet
+#define GWAVE_USEOFFSET   4
+#define GWAVE_USESHAPE    8
+
+void(entity e, float chan, string samp, float vol, float atten) clientsound = #141;
+
+//void() touchworld = #142;
+string() getlocaltime = #143;
+
+void(entity client, string key, string value) setinfo = #144;
+void(float prozacver) setminprozac = #145;
+
+float() getrealtime = #146;
+
+// December 2021
+void(entity ent, float touchtriggers) linkedict = #147;
+
+// HyperSonic's CrossProduct:
+// PZ: This exists in PQWSV, but I'm not using it right now, and this definition conflicts with an existing non-built-in definition.
+//vector(vector vec1, vector vec2) crossproduct = #148;
+
+// In MVDSV already
+float(float input) sin = #60;
+float(float input) cos = #61;
+
+void (vector v1, vector minsize, vector maxsize, vector v2, float nomonsters, entity ignore) tracebox = #90;
+
+#endif // End of PQWSV built-in's assignments
 
 //============================================================================
 
