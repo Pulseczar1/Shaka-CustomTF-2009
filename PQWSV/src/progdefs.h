@@ -37,42 +37,42 @@
 #define PR_MSG_CTF_FLAG_GRAB_TEAM5_2            "You got the enemy flag!\n\n"                                                                                                                 
 #define PR_MSG_CTF_FLAG_GRAB_TEAM6              "You got the enemy flag!\n\n"                                                                                                                 
 #define PR_MSG_CTF_FLAG_GRAB_TEAM7              "Is that a flag in your pocket\nor a you just happy to see me?"                                                                               
-#define PR_TEAM1_SCOUT_SKIN                     "tf_scout\n"                                                                                                                                  
-#define PR_TEAM1_SNIPER_SKIN                    "tf_snipe\n"                                                                                                                                  
-#define PR_TEAM1_SOLDIER_SKIN                   "tf_sold\n"                                                                                                                                   
-#define PR_TEAM1_DEMOMAN_SKIN                   "tf_demo\n"                                                                                                                                   
-#define PR_TEAM1_MEDIC_SKIN                     "tf_medic\n"                                                                                                                                  
-#define PR_TEAM1_HVYWEAP_SKIN                   "tf_hwguy\n"                                                                                                                                  
-#define PR_TEAM1_PYRO_SKIN                      "tf_pyro\n"                                                                                                                                   
-#define PR_TEAM1_SPY_SKIN                       "tf_spy\n"                                                                                                                                    
-#define PR_TEAM1_ENGINEER_SKIN                  "tf_eng\n"                                                                                                                                    
-#define PR_TEAM2_SCOUT_SKIN                     "tf_scout\n"                                                                                                                                  
-#define PR_TEAM2_SNIPER_SKIN                    "tf_snipe\n"                                                                                                                                  
-#define PR_TEAM2_SOLDIER_SKIN                   "tf_sold\n"                                                                                                                                   
-#define PR_TEAM2_DEMOMAN_SKIN                   "tf_demo\n"                                                                                                                                   
-#define PR_TEAM2_MEDIC_SKIN                     "tf_medic\n"                                                                                                                                  
-#define PR_TEAM2_HVYWEAP_SKIN                   "tf_hwguy\n"                                                                                                                                  
-#define PR_TEAM2_PYRO_SKIN                      "tf_pyro\n"                                                                                                                                   
-#define PR_TEAM2_SPY_SKIN                       "tf_spy\n"                                                                                                                                    
-#define PR_TEAM2_ENGINEER_SKIN                  "tf_eng\n"                                                                                                                                    
-#define PR_TEAM3_SCOUT_SKIN                     "tf_scout\n"                                                                                                                                  
-#define PR_TEAM3_SNIPER_SKIN                    "tf_snipe\n"                                                                                                                                  
-#define PR_TEAM3_SOLDIER_SKIN                   "tf_sold\n"                                                                                                                                   
-#define PR_TEAM3_DEMOMAN_SKIN                   "tf_demo\n"                                                                                                                                   
-#define PR_TEAM3_MEDIC_SKIN                     "tf_medic\n"                                                                                                                                  
-#define PR_TEAM3_HVYWEAP_SKIN                   "tf_hwguy\n"                                                                                                                                  
-#define PR_TEAM3_PYRO_SKIN                      "tf_pyro\n"                                                                                                                                   
-#define PR_TEAM3_SPY_SKIN                       "tf_spy\n"                                                                                                                                    
-#define PR_TEAM3_ENGINEER_SKIN                  "tf_eng\n"                                                                                                                                    
-#define PR_TEAM4_SCOUT_SKIN                     "tf_scout\n"                                                                                                                                  
-#define PR_TEAM4_SNIPER_SKIN                    "tf_snipe\n"                                                                                                                                  
-#define PR_TEAM4_SOLDIER_SKIN                   "tf_sold\n"                                                                                                                                   
-#define PR_TEAM4_DEMOMAN_SKIN                   "tf_demo\n"                                                                                                                                   
-#define PR_TEAM4_MEDIC_SKIN                     "tf_medic\n"                                                                                                                                  
-#define PR_TEAM4_HVYWEAP_SKIN                   "tf_hwguy\n"                                                                                                                                  
-#define PR_TEAM4_PYRO_SKIN                      "tf_pyro\n"                                                                                                                                   
-#define PR_TEAM4_SPY_SKIN                       "tf_spy\n"                                                                                                                                    
-#define PR_TEAM4_ENGINEER_SKIN                  "tf_eng\n"                                                                                                                                    
+#define PR_TEAM1_SCOUT_SKIN                     "tf_scout"                                                                                                                                    
+#define PR_TEAM1_SNIPER_SKIN                    "tf_snipe"                                                                                                                                    
+#define PR_TEAM1_SOLDIER_SKIN                   "tf_sold"                                                                                                                                     
+#define PR_TEAM1_DEMOMAN_SKIN                   "tf_demo"                                                                                                                                     
+#define PR_TEAM1_MEDIC_SKIN                     "tf_medic"                                                                                                                                    
+#define PR_TEAM1_HVYWEAP_SKIN                   "tf_hwguy"                                                                                                                                    
+#define PR_TEAM1_PYRO_SKIN                      "tf_pyro"                                                                                                                                     
+#define PR_TEAM1_SPY_SKIN                       "tf_spy"                                                                                                                                      
+#define PR_TEAM1_ENGINEER_SKIN                  "tf_eng"                                                                                                                                      
+#define PR_TEAM2_SCOUT_SKIN                     "tf_scout"                                                                                                                                    
+#define PR_TEAM2_SNIPER_SKIN                    "tf_snipe"                                                                                                                                    
+#define PR_TEAM2_SOLDIER_SKIN                   "tf_sold"                                                                                                                                     
+#define PR_TEAM2_DEMOMAN_SKIN                   "tf_demo"                                                                                                                                     
+#define PR_TEAM2_MEDIC_SKIN                     "tf_medic"                                                                                                                                    
+#define PR_TEAM2_HVYWEAP_SKIN                   "tf_hwguy"                                                                                                                                    
+#define PR_TEAM2_PYRO_SKIN                      "tf_pyro"                                                                                                                                     
+#define PR_TEAM2_SPY_SKIN                       "tf_spy"                                                                                                                                      
+#define PR_TEAM2_ENGINEER_SKIN                  "tf_eng"                                                                                                                                      
+#define PR_TEAM3_SCOUT_SKIN                     "tf_scout"                                                                                                                                    
+#define PR_TEAM3_SNIPER_SKIN                    "tf_snipe"                                                                                                                                    
+#define PR_TEAM3_SOLDIER_SKIN                   "tf_sold"                                                                                                                                     
+#define PR_TEAM3_DEMOMAN_SKIN                   "tf_demo"                                                                                                                                     
+#define PR_TEAM3_MEDIC_SKIN                     "tf_medic"                                                                                                                                    
+#define PR_TEAM3_HVYWEAP_SKIN                   "tf_hwguy"                                                                                                                                    
+#define PR_TEAM3_PYRO_SKIN                      "tf_pyro"                                                                                                                                     
+#define PR_TEAM3_SPY_SKIN                       "tf_spy"                                                                                                                                      
+#define PR_TEAM3_ENGINEER_SKIN                  "tf_eng"                                                                                                                                      
+#define PR_TEAM4_SCOUT_SKIN                     "tf_scout"                                                                                                                                    
+#define PR_TEAM4_SNIPER_SKIN                    "tf_snipe"                                                                                                                                    
+#define PR_TEAM4_SOLDIER_SKIN                   "tf_sold"                                                                                                                                     
+#define PR_TEAM4_DEMOMAN_SKIN                   "tf_demo"                                                                                                                                     
+#define PR_TEAM4_MEDIC_SKIN                     "tf_medic"                                                                                                                                    
+#define PR_TEAM4_HVYWEAP_SKIN                   "tf_hwguy"                                                                                                                                    
+#define PR_TEAM4_PYRO_SKIN                      "tf_pyro"                                                                                                                                     
+#define PR_TEAM4_SPY_SKIN                       "tf_spy"                                                                                                                                      
+#define PR_TEAM4_ENGINEER_SKIN                  "tf_eng"                                                                                                                                      
 #define PR_FL_FLY                               1                                                                                                                                             
 #define PR_FL_SWIM                              2                                                                                                                                             
 #define PR_FL_CLIENT                            8                                                                                                                                             
@@ -252,6 +252,9 @@
 #define PR_COLSTR_MIX2                          3                                                                                                                                             
 #define PR_COLSTR_NUMBER                        4                                                                                                                                             
 #define PR_COLSTR_NUMBERV                       5                                                                                                                                             
+#define PR_VALIDATED_NOT_VALID                  0                                                                                                                                             
+#define PR_VALIDATED_SPECIAL_FOLDER             1                                                                                                                                             
+#define PR_VALIDATED_MAPS_FOLDER                2                                                                                                                                             
 #define PR_GWAVE_STANDARD                       0                                                                                                                                             
 #define PR_GWAVE_USEMINMAX                      1                                                                                                                                             
 #define PR_GWAVE_USEBALANCE                     2                                                                                                                                             
@@ -2110,4 +2113,4 @@ typedef struct
 	string_t  noise3;
 } entvars_t;
 
-#define PROGHEADER_CRC 65101
+#define PROGHEADER_CRC 26310

@@ -346,17 +346,21 @@ void(float targetteam) Admin_Assign =
 		// end Neo mod
 
 		// Set the player's color
-		stuffcmd(self.admin_kick, "color ");
+		// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+		//     themselves, to keep from having to kick them when they do.
+		//stuffcmd(self.admin_kick, "color ");
 		tc = TeamFortress_TeamGetColor(targetteam) - 1;
 		st = ftos(tc);
-
 		tc = self.admin_kick.team_no;
-
 		// Nice colors
-		if (nicecolors==1) st =TeamGetNiceColor(targetteam);
-
-		stuffcmd(self.admin_kick, st);
-		stuffcmd(self.admin_kick, "\n");
+		if (nicecolors==1) st = TeamGetNiceColor(targetteam);
+		// PZ WARNING! Everywhere that I used setinfo() with TeamGetNiceColor() is wrong because TeamGetNiceColor() returns two colors,
+		// not one. This is okay, though, because 'nicecolors' isn't being used. It's turned on with a serverinfo or localinfo variable
+		// 'nicecolors', being set to '1' or 'on'. And I don't have it on.
+		setinfo(self.admin_kick, "topcolor", st);    // PZ
+		setinfo(self.admin_kick, "bottomcolor", st); // PZ
+		//stuffcmd(self.admin_kick, st);
+		//stuffcmd(self.admin_kick, "\n");
 
 		self.admin_kick.team_no = targetteam;
 		makeImmune(self.admin_kick,time+15);

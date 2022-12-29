@@ -547,16 +547,18 @@ void() TeamFortress_SpyUndercoverThink =
 				sprint(self.owner, #PRINT_HIGH, "\n");
 
 				self.owner.undercover_team = self.team;
-				// Set their color 
-				stuffcmd(self.owner, "color ");
+				// Set their color
+				// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+				//     themselves, to keep from having to kick them when they do.
+				//stuffcmd(self.owner, "color ");
 				tc = TeamFortress_TeamGetColor(self.team) - 1;
-				
 				st = ftos(tc);
-				 //- OfN - Nice colors						 //? team_no
-				if (nicecolors==1) st =TeamGetNiceColor(self.team);
-
-				stuffcmd(self.owner, st);
-				stuffcmd(self.owner, "\n");
+				//- OfN - Nice colors                       //? team_no
+				if (nicecolors == 1) st = TeamGetNiceColor(self.team);
+				setinfo(self.owner, "topcolor", st);    // PZ
+				setinfo(self.owner, "bottomcolor", st); // PZ
+				//stuffcmd(self.owner, st);
+				//stuffcmd(self.owner, "\n");
 			}
 
 			TeamFortress_SpyCalcName(self.owner);
@@ -640,15 +642,17 @@ void(float teamno) TeamFortress_SpyChangeColor =
 		makeImmune(self,time + 4);
 		//self.immune_to_check = time + 4;
 		self.undercover_team = 0;
-		stuffcmd(self, "color ");
+		// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+		//     themselves, to keep from having to kick them when they do.
+		//stuffcmd(self, "color ");
 		tc = TeamFortress_TeamGetColor(self.team_no) - 1;
 		st = ftos(tc);
-		
 		//- OfN - Nice colors
-		if (nicecolors==1) st =TeamGetNiceColor(self.team_no);
-
-		stuffcmd(self, st);
-		stuffcmd(self, "\n");
+		if (nicecolors==1) st = TeamGetNiceColor(self.team_no);
+		setinfo(self, "topcolor", st);    // PZ
+		setinfo(self, "bottomcolor", st); // PZ
+		//stuffcmd(self, st);
+		//stuffcmd(self, "\n");
 
 		if (self.undercover_skin == 0)
 		{
@@ -1119,17 +1123,17 @@ void(entity spy) Spy_RemoveDisguise =
 				makeImmune(spy,time + 4);
 				//spy.immune_to_check = time + 4;
 				spy.undercover_team = 0;
-
-				stuffcmd(spy, "color ");
+				// PZ: We are no longer using stuffcmd() to set team, color, or skin. Players will no longer be able to change these things,
+				//     themselves, to keep from having to kick them when they do.
+				//stuffcmd(spy, "color ");
 				tc = TeamFortress_TeamGetColor(spy.team_no) - 1;
-				
 				st = ftos(tc);
-
 				//- OfN - Nice colors
-				if (nicecolors==1) st =TeamGetNiceColor(spy.team_no);
-
-				stuffcmd(spy, st);
-				stuffcmd(spy, "\n");
+				if (nicecolors==1) st = TeamGetNiceColor(spy.team_no);
+				setinfo(spy, "topcolor", st);    // PZ
+				setinfo(spy, "bottomcolor", st); // PZ
+				//stuffcmd(spy, st);
+				//stuffcmd(spy, "\n");
 			}
 
 			spy.is_undercover = 0;
