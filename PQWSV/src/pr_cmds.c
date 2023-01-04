@@ -3726,6 +3726,29 @@ void PF_getlocaltime(void)
 	RETURN_STRING(result);
 }
 
+ddef_t* ED_FindGlobal(char* name); // PZ: forward declaration
+ddef_t* ED_FindField(char* name);  // PZ: forward declaration
+
+// PZ: This is from CPQWSV. Putting it here for convenience. If you decide to incorporate this code into your server,
+//     I suggest putting it somewhere else, or writing your own.
+// PZ NOTE: Get's the client's `team_no` field.
+int KK_Team_No(client_t* cl)
+{
+	int team;
+	// PZ: I don't like forcing progs code to have certain variables. So, keeping these dynamic (checked at runtime).
+	/*static*/ ddef_t* team_no = ED_FindField("team_no");  // "static" should keep it from looking for the field more than once.
+
+	if (cl->state != cs_spawned)   return 0;
+	if (!team_no || cl->spectator) return 0;
+
+	eval_t* val;
+	val  = (eval_t*)((char*)&cl->edict->v + team_no->ofs); // PZ NOTE: This offset may need to be multiplied by 4 for the QuakeC VM.
+	team = (int)val->_float;
+
+	if (team < 1 || team > 4) return 0;
+	return team;
+}
+
 /* 2020 June
 ==============
 PF_setinfo
@@ -3733,53 +3756,149 @@ PF_setinfo
 void(entity client, string key, string value) setinfo
 ==============
 */
-
 void PF_setinfo(void)
 {
 	edict_t* client;
 	char* key;
 	char* value;
-	int i, e_num;
-	client_t* clientstruct;
+	int i, e_num, teamNum, clientIndex;
+	client_t* clientstruct, * cl;
+	ddef_t* def;            // PZ
+
+	// PZ: Ported this to MVDSV/PQWSV from CPQWSV, SV_SetInfo_f(). (January 2, 2023)
+	// WK: Variables for the spy color hack logic, most can be eliminated...
+	int playing_tf    = 1;  // boolean
+	int	teamCount     = 0;  //(int)KK_Global_Float("number_of_teams");
+	def = ED_FindGlobal("number_of_teams");
+	if (def) teamCount = ((eval_t*)&pr_globals[def->ofs])->_float;
+	else     teamCount = 2; // PZ: This shouldn't happen, but if it does, whatever.
+	//int same_team   = 0;  // Set TRUE if players are on the same team. (boolean)
+	int chosen_color  = 0;  // the color the client is changing to
+	int correct_color = 0;  // If resetting, set to the reset color of the team. (boolean)
+	int myteam        = 0;  // Holds the team number of the active client.
+	ctxinfo_t fakeUserInfo; //char info[MAX_INFO_STRING]; // PZ: For WK's mod. Was character array in CPQWSV.
+	// PZ: END section of WK modification port.
 
 	char oldval[MAX_EXT_INFO_STRING];
 
 	client = G_EDICT(OFS_PARM0);
-	key = G_STRING(OFS_PARM1);
-	value = G_STRING(OFS_PARM2);
+	key    = G_STRING(OFS_PARM1);
+	value  = G_STRING(OFS_PARM2);
 
 	e_num = NUM_FOR_EDICT(client);
 	
 	if (strstr(key, "\"") || strstr(value, "\""))
 		return;
 
-	// If edict is 'world', set a starred serverinfo on server
+	// If edict is 'world', set a starred serverinfo on server.
 	if (e_num == 0)
 	{
 		Info_SetValueForStarKey(svs.info, key, value, MAX_SERVERINFO_STRING);
 		return;
 	}
 
-	strcpy(oldval, Info_Get(&svs.clients[e_num - 1]._userinfo_ctx_, key));
-
-	Info_Set(&svs.clients[e_num - 1]._userinfo_ctx_, key, value);
-	Info_SetStar(&svs.clients[e_num - 1]._userinfoshort_ctx_, key, value);
-
-	if (!strcmp(Info_Get(&svs.clients[e_num - 1]._userinfo_ctx_, key), oldval))
-		return; // key hasn't changed
-
-				// process any changed values
-				// NEEDED? don't think so --> // SV_ExtractFromUserinfo(host_client);
-
-	SV_ExtractFromUserinfo(&svs.clients[e_num - 1], false); // July 2020
-
+	// Edict is a client.
 	clientstruct = &svs.clients[e_num - 1];
+	clientIndex = clientstruct - svs.clients;
 
-	i = clientstruct - svs.clients;
-	MSG_WriteByte(&sv.reliable_datagram, svc_setinfo);
-	MSG_WriteByte(&sv.reliable_datagram, i);
-	MSG_WriteString(&sv.reliable_datagram, key);
-	MSG_WriteString(&sv.reliable_datagram, Info_Get(&svs.clients[e_num - 1]._userinfo_ctx_, key));
+	strcpy(oldval, Info_Get(&clientstruct->_userinfo_ctx_, key));
+
+	Info_Set(&clientstruct->_userinfo_ctx_, key, value);
+	Info_SetStar(&clientstruct->_userinfoshort_ctx_, key, value);
+
+	if (!strcmp(Info_Get(&clientstruct->_userinfo_ctx_, key), oldval))
+		return; // Key hasn't changed.
+
+	// Process any changed values.
+	// NEEDED? don't think so --> // SV_ExtractFromUserinfo(host_client);
+	SV_ExtractFromUserinfo(clientstruct, false); // July 2020
+
+//===========================================================
+
+	// PZ: Ported this to MVDSV/PQWSV from CPQWSV, SV_SetInfo_f(). (January 2, 2023)
+	/* WK 1/7/7 Spy Color Hack WOWOW
+	   Send spy color changes to enemies only.
+	   Yourself and teammates see you in your team's colors (bottomcolor), with a topcolor of the enemy,
+	   so that you and your friends know that you are indeed disguised.
+	   Has enough logic to enable itself only during TF games.
+	*/
+	#define COLOR_TEAM_0     0
+	#define S_COLOR_TEAM_0   "0"
+	#define COLOR_TEAM_1     13
+	#define S_COLOR_TEAM_1   "13"
+	#define COLOR_TEAM_2     4
+	#define S_COLOR_TEAM_2   "4"
+	#define COLOR_TEAM_3     12
+	#define S_COLOR_TEAM_3   "12"
+	#define COLOR_TEAM_4     11
+	#define S_COLOR_TEAM_4   "11"
+	#define COLOR_TEAMKILLER 8
+
+	if (!strcmp(key, "topcolor") || !strcmp(key, "bottomcolor"))
+	{
+		// Figure out the logic. We only do the spy color hack in TF games with people on a team.
+		myteam = KK_Team_No(clientstruct);
+		if (teamCount < 1 || teamCount > 4) playing_tf = 0;
+		if (strcmp(Info_ValueForKey(svs.info, "*gamedir"), "fortress")) playing_tf = 0;
+		chosen_color = atoi(Info_Get(&clientstruct->_userinfo_ctx_, key));
+
+		// `correct_color` only gets set if we're resetting our color to where it should be.
+		// (If we are switching to our correct color, we allow everyone to see the reset.)
+		if ((myteam == 0 && chosen_color == COLOR_TEAM_0) ||
+		    (myteam == 1 && chosen_color == COLOR_TEAM_1) ||
+		    (myteam == 2 && chosen_color == COLOR_TEAM_2) ||
+		    (myteam == 3 && chosen_color == COLOR_TEAM_3) ||
+		    (myteam == 4 && chosen_color == COLOR_TEAM_4))   correct_color = 1;
+		if (chosen_color == COLOR_TEAMKILLER)                correct_color = 1; // Handle TKers.
+		
+		//Sys_Printf("Color Change to %i. (myteam: %i)\n", chosen_color, myteam);
+		//if (correct_color) Sys_Printf("(Colors Reset)\n");
+		//else Sys_Printf("(Disguising)\n");
+
+		// `fakeUserInfo` holds a modified copy of `_userinfo_ctx_` to be sent out to his teammates.
+		// `_userinfo_ctx_`, the real data, gets sent to his enemies, instead.
+		memcpy(&fakeUserInfo, &clientstruct->_userinfo_ctx_, sizeof (ctxinfo_t));
+		Info_Set(&fakeUserInfo, "topcolor", Info_Get(&clientstruct->_userinfo_ctx_, key));
+		if (myteam == 0) Info_Set(&fakeUserInfo, "bottomcolor", S_COLOR_TEAM_0);
+		if (myteam == 1) Info_Set(&fakeUserInfo, "bottomcolor", S_COLOR_TEAM_1);
+		if (myteam == 2) Info_Set(&fakeUserInfo, "bottomcolor", S_COLOR_TEAM_2);
+		if (myteam == 3) Info_Set(&fakeUserInfo, "bottomcolor", S_COLOR_TEAM_3);
+		if (myteam == 4) Info_Set(&fakeUserInfo, "bottomcolor", S_COLOR_TEAM_4);
+		// Handle Resetting Colors correctly
+		if (correct_color) Info_Set(&fakeUserInfo, "bottomcolor", Info_Get(&clientstruct->_userinfo_ctx_, key));
+
+		// Now, broadcast the `fakeUserInfo` to all teammates, and the normal userinfo to all enemies.
+		for (i = 0, cl = svs.clients; i < MAX_CLIENTS; i++, cl++)
+		{
+			ClientReliableWrite_Begin(cl, svc_setinfo, 18);
+			ClientReliableWrite_Byte(cl, clientIndex);
+			ClientReliableWrite_String(cl, key);
+			teamNum = KK_Team_No(cl);
+			if (teamNum == myteam && teamNum != 0 && playing_tf)
+			{
+				//Sys_Printf("Client %i is on same team (team %i) as color changer, info sent\n", cl->userid, myteam);
+				ClientReliableWrite_String(cl, Info_Get(&fakeUserInfo, key));
+			}
+			else
+				ClientReliableWrite_String(cl, Info_Get(&clientstruct->_userinfo_ctx_, key));
+		}
+	}
+	else
+	{
+		// Not a color change. So pass it on as before.
+		MSG_WriteByte(&sv.reliable_datagram, svc_setinfo);
+		MSG_WriteByte(&sv.reliable_datagram, clientIndex);
+		MSG_WriteString(&sv.reliable_datagram, key);
+		MSG_WriteString(&sv.reliable_datagram, Info_Get(&clientstruct->_userinfo_ctx_, key));
+	}
+
+//===========================================================
+
+	//clientIndex = clientstruct - svs.clients;
+	//MSG_WriteByte(&sv.reliable_datagram, svc_setinfo);
+	//MSG_WriteByte(&sv.reliable_datagram, clientIndex);
+	//MSG_WriteString(&sv.reliable_datagram, key);
+	//MSG_WriteString(&sv.reliable_datagram, Info_Get(&clientstruct->_userinfo_ctx_, key));
 }
 
 /* 2020 July

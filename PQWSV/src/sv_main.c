@@ -3614,7 +3614,7 @@ void SV_InitLocal (void)
 SV_ExtractFromUserinfo
 
 Pull specific info from a newly changed userinfo string
-into a more C freindly form.
+into a more C-friendly form.
 =================
 */
 void SV_ExtractFromUserinfo (client_t *cl, qbool namechanged)
@@ -4310,11 +4310,11 @@ void SV_DisplayPinmsgs(client_t* theclient)
 		if (pinmsg[i].msg[0])
 		{
 			if (isbegin)
-				SV_ClientPrintf(theclient, PRINT_HIGH, "\n Welcome to ĞÒÏÚÁÃ CustomÔÆ! \n");
+				SV_ClientPrintf(theclient, PRINT_HIGH, "\n Welcome to ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Customï¿½ï¿½! \n");
 
 			isbegin = false;
 			pinmsg[i].counter++;
-			SV_ClientPrintf(theclient, PRINT_HIGH, "\n %s\n\nÛdisplayed %u timesİ\n%s\n", pinmsg[i].msg, pinmsg[i].counter, pinmsg[i].sign);
+			SV_ClientPrintf(theclient, PRINT_HIGH, "\nï¿½ %s\n\nï¿½displayed %u timesï¿½\n%s\n", pinmsg[i].msg, pinmsg[i].counter, pinmsg[i].sign);
 		}
 	}
 

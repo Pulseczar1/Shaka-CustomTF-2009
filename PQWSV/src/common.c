@@ -1515,6 +1515,32 @@ qbool Info_ReverseConvert(ctxinfo_t *ctx, char *str, int size)
 	return true;
 }
 
+// PZ: Added. Description in header, like the rest of these.
+qbool Info_Copy(ctxinfo_t* ctx_from, ctxinfo_t* ctx_to)
+{
+	info_t* a;
+
+	if (!ctx_from || !ctx_to)
+		return false;
+
+	if (ctx_from == ctx_to)
+		return true; // hrm
+
+	for (a = ctx_from->info_list;  a;  a = a->next)
+	{
+		//if (a->name[0] != '*')
+		//	continue; // not a star key
+
+		if (!a->value[0])
+			continue; // empty
+
+		// Do we need check status of this function?
+		Info_SetStar(ctx_to, a->name, a->value);
+	}
+
+	return true;
+}
+
 qbool Info_CopyStar(ctxinfo_t *ctx_from, ctxinfo_t *ctx_to)
 {
 	info_t *a;
