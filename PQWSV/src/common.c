@@ -1348,6 +1348,8 @@ qbool Info_SetStar (ctxinfo_t *ctx, const char *name, const char *value)
 	return true;
 }
 
+// PZ NOTE: Often said that the reason this one says you can't set * keys is because this one is used by clients.
+//          Star keys are protected keys, that only the server can write to. Only the server can call Info_SetStar().
 qbool Info_Set (ctxinfo_t *ctx, const char *name, const char *value)
 {
 	if (!value)
@@ -1516,7 +1518,7 @@ qbool Info_ReverseConvert(ctxinfo_t *ctx, char *str, int size)
 }
 
 // PZ: Added. Description in header, like the rest of these.
-qbool Info_Copy(ctxinfo_t* ctx_from, ctxinfo_t* ctx_to)
+/*qbool Info_Copy(ctxinfo_t* ctx_from, ctxinfo_t* ctx_to)
 {
 	info_t* a;
 
@@ -1539,7 +1541,7 @@ qbool Info_Copy(ctxinfo_t* ctx_from, ctxinfo_t* ctx_to)
 	}
 
 	return true;
-}
+}*/
 
 qbool Info_CopyStar(ctxinfo_t *ctx_from, ctxinfo_t *ctx_to)
 {

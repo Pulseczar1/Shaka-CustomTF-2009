@@ -3742,7 +3742,7 @@ int KK_Team_No(client_t* cl)
 	if (!team_no || cl->spectator) return 0;
 
 	eval_t* val;
-	val  = (eval_t*)((char*)&cl->edict->v + team_no->ofs); // PZ NOTE: This offset may need to be multiplied by 4 for the QuakeC VM.
+	val  = (eval_t*)((char*)&cl->edict->v + team_no->ofs*4); // PZ NOTE: This offset may need to be multiplied by 4 for the QuakeC VM.
 	team = (int)val->_float;
 
 	if (team < 1 || team > 4) return 0;
@@ -3776,7 +3776,12 @@ void PF_setinfo(void)
 	int chosen_color  = 0;  // the color the client is changing to
 	int correct_color = 0;  // If resetting, set to the reset color of the team. (boolean)
 	int myteam        = 0;  // Holds the team number of the active client.
-	ctxinfo_t fakeUserInfo; //char info[MAX_INFO_STRING]; // PZ: For WK's mod. Was character array in CPQWSV.
+	//ctxinfo_t fakeUserInfo; //char info[MAX_INFO_STRING]; // PZ: For WK's mod. Was character array in CPQWSV.
+	// PZ: You don't need to fake the entire userinfo, at least not in this function the way Shaka did it, with the functionality
+	//     limited to this function. Faking the userinfo, with MVDSV's modifications, is taking time to figure out how to do it,
+	//     due to a lack of code documentation. I don't need it for what we're doing here, anyway. So just hold the value in an int.
+	int fakeBottomColor = 0;
+	char fakeBottomColorStr[8] = "";
 	// PZ: END section of WK modification port.
 
 	char oldval[MAX_EXT_INFO_STRING];
@@ -3834,7 +3839,7 @@ void PF_setinfo(void)
 	#define S_COLOR_TEAM_4   "11"
 	#define COLOR_TEAMKILLER 8
 
-	if (!strcmp(key, "topcolor") || !strcmp(key, "bottomcolor"))
+	if (/*!strcmp(key, "topcolor") ||*/ !strcmp(key, "bottomcolor"))
 	{
 		// Figure out the logic. We only do the spy color hack in TF games with people on a team.
 		myteam = KK_Team_No(clientstruct);
@@ -3857,19 +3862,23 @@ void PF_setinfo(void)
 
 		// `fakeUserInfo` holds a modified copy of `_userinfo_ctx_` to be sent out to his teammates.
 		// `_userinfo_ctx_`, the real data, gets sent to his enemies, instead.
-		memcpy(&fakeUserInfo, &clientstruct->_userinfo_ctx_, sizeof (ctxinfo_t));
-		Info_Set(&fakeUserInfo, "topcolor", Info_Get(&clientstruct->_userinfo_ctx_, key));
-		if (myteam == 0) Info_Set(&fakeUserInfo, "bottomcolor", S_COLOR_TEAM_0);
-		if (myteam == 1) Info_Set(&fakeUserInfo, "bottomcolor", S_COLOR_TEAM_1);
-		if (myteam == 2) Info_Set(&fakeUserInfo, "bottomcolor", S_COLOR_TEAM_2);
-		if (myteam == 3) Info_Set(&fakeUserInfo, "bottomcolor", S_COLOR_TEAM_3);
-		if (myteam == 4) Info_Set(&fakeUserInfo, "bottomcolor", S_COLOR_TEAM_4);
+		//memcpy(&fakeUserInfo, &clientstruct->_userinfo_ctx_, sizeof (ctxinfo_t));
+		// PZ: I don't think you can do a memcpy on `ctxinfo_t`s because they contain pointers (lists).
+		//Info_CopyStar(&clientstruct->_userinfo_ctx_, &fakeUserInfo);
+		//Info_Set(&fakeUserInfo, "topcolor", Info_Get(&clientstruct->_userinfo_ctx_, key));
+		if (myteam == 0) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ fakeBottomColor = COLOR_TEAM_0;
+		if (myteam == 1) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ fakeBottomColor = COLOR_TEAM_1;
+		if (myteam == 2) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ fakeBottomColor = COLOR_TEAM_2;
+		if (myteam == 3) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ fakeBottomColor = COLOR_TEAM_3;
+		if (myteam == 4) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ fakeBottomColor = COLOR_TEAM_4;
 		// Handle Resetting Colors correctly
-		if (correct_color) Info_Set(&fakeUserInfo, "bottomcolor", Info_Get(&clientstruct->_userinfo_ctx_, key));
+		if (correct_color) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ fakeBottomColor = atoi(Info_Get(&clientstruct->_userinfo_ctx_, key));
 
-		// Now, broadcast the `fakeUserInfo` to all teammates, and the normal userinfo to all enemies.
+		// Now, broadcast the `fakeBottomColor` to all teammates, and the normal userinfo to all enemies.
 		for (i = 0, cl = svs.clients; i < MAX_CLIENTS; i++, cl++)
 		{
+			if (cl->state == cs_free) continue;
+			Sys_Printf("##################### Sending svc_setinfo #####################\n");
 			ClientReliableWrite_Begin(cl, svc_setinfo, 18);
 			ClientReliableWrite_Byte(cl, clientIndex);
 			ClientReliableWrite_String(cl, key);
@@ -3877,7 +3886,8 @@ void PF_setinfo(void)
 			if (teamNum == myteam && teamNum != 0 && playing_tf)
 			{
 				//Sys_Printf("Client %i is on same team (team %i) as color changer, info sent\n", cl->userid, myteam);
-				ClientReliableWrite_String(cl, Info_Get(&fakeUserInfo, key));
+				sprintf(fakeBottomColorStr, "%d", fakeBottomColor);
+				ClientReliableWrite_String(cl, /*Info_Get(&fakeUserInfo, key)*/ fakeBottomColorStr);
 			}
 			else
 				ClientReliableWrite_String(cl, Info_Get(&clientstruct->_userinfo_ctx_, key));
