@@ -3768,7 +3768,7 @@ void PF_setinfo(void)
 	// PZ: Ported this to MVDSV/PQWSV from CPQWSV, SV_SetInfo_f(). (January 2, 2023)
 	// WK: Variables for the spy color hack logic, most can be eliminated...
 	int playing_tf    = 1;  // boolean
-	int	teamCount     = 0;  //(int)KK_Global_Float("number_of_teams");
+	int teamCount     = 0;  //(int)KK_Global_Float("number_of_teams");
 	def = ED_FindGlobal("number_of_teams");
 	if (def) teamCount = ((eval_t*)&pr_globals[def->ofs])->_float;
 	else     teamCount = 2; // PZ: This shouldn't happen, but if it does, whatever.
@@ -3799,7 +3799,7 @@ void PF_setinfo(void)
 
 	// Edict is a client.
 	clientstruct = &svs.clients[e_num - 1];
-	clientIndex = clientstruct - svs.clients;
+	clientIndex  = clientstruct - svs.clients;
 
 	strcpy(oldval, Info_Get(&clientstruct->_userinfo_ctx_, key));
 

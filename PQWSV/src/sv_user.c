@@ -1510,9 +1510,9 @@ static void Cmd_Download_f(void)
 	// OfN 2020 - Add DLIN as team for downloader - no!-> TOCHECK FIXES FTE CHUNKS DOWNLOAD TO PLACE THIS BEFORE THE ABOVE?
 	if (sv_client->state < cs_spawned) // Only if not spawned
 	{
-		if (strcmp(Info_Get(&sv_client->_userinfoshort_ctx_, "team"), "ï¿½ï¿½ï¿½ï¿½") != 0) // Only if it isn't already set
+		if (strcmp(Info_Get(&sv_client->_userinfoshort_ctx_, "team"), "äìéî") != 0) // Only if it isn't already set
 		{
-			Info_Set(&sv_client->_userinfoshort_ctx_, "team", "ï¿½ï¿½ï¿½ï¿½");
+			Info_Set(&sv_client->_userinfoshort_ctx_, "team", "äìéî");
 			// Broadcast to other clients? see SV_SetInfo_f below in this same file
 			// process any changed values
 			///SV_ExtractFromUserinfo(sv_client);
@@ -1811,17 +1811,17 @@ static void SV_Say (qbool team)
 		strlcpy(text, va("[SPEC] %s: %s", sv_client->name, text), sizeof(text));
 	else if (team)
 	{
-		// OfN - /me support "ï¿½ï¿½ %s"
+		// OfN - /me support " %s"
 		if (is_me)
-			strlcpy(text, va("ï¿½ï¿½ (%s) %s", sv_client->name, text), sizeof(text));
+			strlcpy(text, va(" (%s) %s", sv_client->name, text), sizeof(text));
 		else // Original code follows
 			strlcpy(text, va("(%s): %s", sv_client->name, text), sizeof(text));
 	}
 	else
 	{
-		// OfN - /me support "ï¿½ï¿½ %s"
+		// OfN - /me support " %s"
 		if (is_me)
-			strlcpy(text, va("ï¿½ï¿½ %s %s", sv_client->name, text), sizeof(text));
+			strlcpy(text, va(" %s %s", sv_client->name, text), sizeof(text));
 		else // Original code follows
 			strlcpy(text, va("%s: %s", sv_client->name, text), sizeof(text));
 	}
