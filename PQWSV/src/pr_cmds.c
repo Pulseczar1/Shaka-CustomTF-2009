@@ -3726,6 +3726,45 @@ void PF_getlocaltime(void)
 	RETURN_STRING(result);
 }
 
+ddef_t* ED_FindGlobal(const char* name); // PZ: forward declaration
+ddef_t* ED_FindField(char* name);        // PZ: forward declaration
+
+// PZ: These two are from CPQWSV. Putting them here for convenience. If you decide to incorporate this code into your server,
+//     I suggest putting these somewhere else, or writing your own.
+// PZ NOTE: Gets the float value for progs global variable named by `str`.
+float KK_Global_Float(const char* str)
+{
+	ddef_t* def = ED_FindGlobal(str);
+	eval_t* val;
+
+	if (def)
+	{
+		//Sys_Printf("ofs = %04X\n", (unsigned int)def->ofs);
+		val = (eval_t*)&pr_globals[def->ofs];
+		return val->_float;
+	}
+	return -1.0;
+}
+
+// PZ NOTE: Gets the client's `team_no` field.
+int KK_Team_No(client_t* cl)
+{
+	int team;
+	// PZ: I don't like forcing progs code to have certain variables. So, keeping these dynamic (checked at runtime).
+	/*static*/ ddef_t* team_no = ED_FindField("team_no");  // "static" should keep it from looking for the field more than once.
+
+	if (cl->state != cs_spawned)   return 0;
+	if (!team_no || cl->spectator) return 0;
+
+	eval_t* val;
+	// PZ: I don't understand why I had this comment here, but multiplying by 4 did seem to fix this function.
+	val  = (eval_t*)((char*)&cl->edict->v + team_no->ofs*4); // PZ NOTE: This offset may need to be multiplied by 4 for the QuakeC VM.
+	team = (int)val->_float;
+
+	if (team < 1 || team > 4) return 0;
+	return team;
+}
+
 /* 2020 June
 ==============
 PF_setinfo
@@ -3733,53 +3772,120 @@ PF_setinfo
 void(entity client, string key, string value) setinfo
 ==============
 */
-
-void PF_setinfo(void)
+void PF_setinfo()
 {
-	edict_t* client;
-	char* key;
-	char* value;
-	int i, e_num;
-	client_t* clientstruct;
+	// Get arguments from progs.
+	edict_t*  clientEdict    = G_EDICT(OFS_PARM0);
+	char*     key            = G_STRING(OFS_PARM1);
+	char*     value          = G_STRING(OFS_PARM2);
+	int       clientEdictNum = NUM_FOR_EDICT(clientEdict);
+	// Get client structure.
+	client_t* thisClient     = &svs.clients[clientEdictNum - 1];
+	int       clientIndex    = thisClient - svs.clients;
 
-	char oldval[MAX_EXT_INFO_STRING];
-
-	client = G_EDICT(OFS_PARM0);
-	key = G_STRING(OFS_PARM1);
-	value = G_STRING(OFS_PARM2);
-
-	e_num = NUM_FOR_EDICT(client);
-	
+	// Ignore keys/values containing double-quotes.
 	if (strstr(key, "\"") || strstr(value, "\""))
 		return;
 
-	// If edict is 'world', set a starred serverinfo on server
-	if (e_num == 0)
+	// If edict is `world`, set a starred key in the serverinfo.
+	if (clientEdictNum == 0)
 	{
 		Info_SetValueForStarKey(svs.info, key, value, MAX_SERVERINFO_STRING);
 		return;
 	}
 
-	strcpy(oldval, Info_Get(&svs.clients[e_num - 1]._userinfo_ctx_, key));
+	// Store the previous value for this client's `key`.
+	char oldval[MAX_EXT_INFO_STRING];
+	strcpy(oldval, Info_Get(&thisClient->_userinfo_ctx_, key));
 
-	Info_Set(&svs.clients[e_num - 1]._userinfo_ctx_, key, value);
-	Info_SetStar(&svs.clients[e_num - 1]._userinfoshort_ctx_, key, value);
+	// Write the new value for this client's `key` to both its normal userinfo and short userinfo.
+	Info_Set(&thisClient->_userinfo_ctx_, key, value);
+	Info_SetStar(&thisClient->_userinfoshort_ctx_, key, value);
 
-	if (!strcmp(Info_Get(&svs.clients[e_num - 1]._userinfo_ctx_, key), oldval))
-		return; // key hasn't changed
+	// If the new value is the same as the old value, stop here.
+	// PZ NOTE: Not sure why you bother writing it, if it's the same, but whatever.
+	if (!strcmp(Info_Get(&thisClient->_userinfo_ctx_, key), oldval))
+		return;
 
-				// process any changed values
-				// NEEDED? don't think so --> // SV_ExtractFromUserinfo(host_client);
+	// Process any changed values. PZ NOTE: This updates some server data with the new userinfo data.
+	SV_ExtractFromUserinfo(thisClient, false); // July 2020
 
-	SV_ExtractFromUserinfo(&svs.clients[e_num - 1], false); // July 2020
+	// PZ: Ported this to MVDSV/PQWSV from CPQWSV, SV_SetInfo_f(). (January 9, 2023)
+	// WK: Spy Color Hack (1/7/2007)
+	// Send spy color changes to enemies only. Yourself and teammates see you in your team's colors (bottomcolor), with
+	// a topcolor of the enemy, so that you and your friends know that you are indeed disguised. Has enough logic to
+	// enable itself only during TF games.
+	// PZ: I rewrote this code. All this needs to do is, when a spy is disguised, send his disguised bottomcolor to
+	// enemies, and his undisguised bottomcolor to teammates. The game normally sends the disguised color to everyone.
+	// So, we are overriding the bottomcolor only when sending the color to teammates of the spy. This should function
+	// pretty much identical to how Shaka had it working. I just didn't like how the code was structured.
+	// FIXME: This code is deficient in that players joining/leaving/changing teams won't receive an update for the
+	// color of each already-disguised spy, to make sure they receive the color we want them to have, depending on
+	// whether they are a teammate of each disguised spy. That seems to be a problem in Shaka's original code. I'll
+	// leave this for myself, or someone else, to fix later. See: https://github.com/Pulseczar1/Shaka-CustomTF-2009/issues/
+	qbool overrideSent = false;
+	// We only potentially override `bottomcolor` userinfo keys.
+	if (!strcmp(key, "bottomcolor"))
+	{
+		// Determine whether we are playing a game mode for which we should not alter bottomcolors.
+		qbool performBottomColorOverride = true;
+		int teamCount = KK_Global_Float("number_of_teams"); // PZ NOTE: It seems like it should be: teamCount < 2 || teamCount > 4
+		if      (teamCount < 1 || teamCount > 4)                             performBottomColorOverride = false;
+		else if (strcmp(Info_ValueForKey(svs.info, "*gamedir"), "fortress")) performBottomColorOverride = false;
+		// Don't alter the colors in Neo mode.
+		else if (KK_Global_Float("neo"))                                     performBottomColorOverride = false;
 
-	clientstruct = &svs.clients[e_num - 1];
+		if (performBottomColorOverride)
+		{
+			// Determine whether this client's color is disguised.
+			const int TEAM_COLORS[] = { 0, 13, 4, 12, 11 }, TEAMKILLER_COLOR = 8;
+			int teamOfThisClient = KK_Team_No(thisClient);
+			int colorInstructed  = atoi(value);
+			qbool isClientColorDisguised = false;
+			if (colorInstructed != TEAM_COLORS[teamOfThisClient] && colorInstructed != TEAMKILLER_COLOR)
+				isClientColorDisguised = true;
 
-	i = clientstruct - svs.clients;
-	MSG_WriteByte(&sv.reliable_datagram, svc_setinfo);
-	MSG_WriteByte(&sv.reliable_datagram, i);
-	MSG_WriteString(&sv.reliable_datagram, key);
-	MSG_WriteString(&sv.reliable_datagram, Info_Get(&svs.clients[e_num - 1]._userinfo_ctx_, key));
+			// We only override `bottomcolor` userinfo keys, when this client's color is disguised.
+			if (isClientColorDisguised)
+			{
+				char undisguisedBottomColorStr[8] = "";
+				// Send his teammates his undisguised bottomcolor and his enemies his disguised bottomcolor.
+				client_t* cl = svs.clients;
+				for (int i = 0;   i < MAX_CLIENTS;   ++i, ++cl)
+				{
+					if (cl->state != cs_spawned && cl->state != cs_connected)
+						continue;
+					ClientReliableWrite_Begin(cl, svc_setinfo, 18);
+					ClientReliableWrite_Byte(cl, clientIndex);
+					ClientReliableWrite_String(cl, key);
+					int teamNum = KK_Team_No(cl);
+					// If `i` is a teammate, send this client's undisguised bottomcolor to `i`.
+					if (teamNum == teamOfThisClient && teamNum != 0)
+					{
+						sprintf(undisguisedBottomColorStr, "%d", TEAM_COLORS[teamOfThisClient]);
+						ClientReliableWrite_String(cl, undisguisedBottomColorStr);
+					}
+					// If `i` is not a teammate, send this client's disguised bottomcolor to `i`.
+					// PZ NOTE: Not sure why we don't just send `value`. But I'm not looking through the Info* functions
+					//          to see if it matters. It would be nice to just send `value`, if it doesn't matter.
+					else
+						ClientReliableWrite_String(cl, Info_Get(&thisClient->_userinfo_ctx_, key));
+				}
+				overrideSent = true;
+			}
+		}
+	}
+
+	// Send the data like normal, to all clients at once, if the data was not already sent, above, as an override.
+	if (!overrideSent)
+	{
+		MSG_WriteByte(&sv.reliable_datagram, svc_setinfo);
+		MSG_WriteByte(&sv.reliable_datagram, clientIndex);
+		MSG_WriteString(&sv.reliable_datagram, key);
+		// PZ NOTE: Not sure why we don't just send `value`. But I'm not looking through the Info* functions
+		//          to see if it matters. It would be nice to just send `value`, if it doesn't matter.
+		MSG_WriteString(&sv.reliable_datagram, Info_Get(&thisClient->_userinfo_ctx_, key));
+	}
 }
 
 /* 2020 July

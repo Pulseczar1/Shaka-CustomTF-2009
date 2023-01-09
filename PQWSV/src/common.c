@@ -1348,6 +1348,8 @@ qbool Info_SetStar (ctxinfo_t *ctx, const char *name, const char *value)
 	return true;
 }
 
+// PZ NOTE: Often said that the reason this one says you can't set * keys is because this one is used by clients.
+//          Star keys are protected keys, that only the server can write to. Only the server can call Info_SetStar().
 qbool Info_Set (ctxinfo_t *ctx, const char *name, const char *value)
 {
 	if (!value)

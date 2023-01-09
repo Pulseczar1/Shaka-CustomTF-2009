@@ -245,7 +245,7 @@ ddef_t *ED_FindField (char *name)
 ED_FindGlobal
 ============
 */
-ddef_t *ED_FindGlobal (char *name)
+ddef_t *ED_FindGlobal (const char *name)
 {
 	ddef_t		*def;
 	int			i;

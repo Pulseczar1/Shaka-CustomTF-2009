@@ -2290,7 +2290,7 @@ Allow clients to change userinfo
 ==================
 */
 
-char *shortinfotbl[] =
+char* shortinfotbl[] =
 {
 	"name",
 	"team",
@@ -2308,7 +2308,7 @@ char *shortinfotbl[] =
 	NULL
 };
 
-static void Cmd_SetInfo_f (void)
+static void Cmd_SetInfo_f(void)
 {
 	extern cvar_t sv_forcenick, sv_login;
 	sv_client_state_t saved_state;
@@ -2321,7 +2321,7 @@ static void Cmd_SetInfo_f (void)
 			curtime - sv_client->lastuserinfotime > sv_kickuserinfospamtime.value)
 		{
 			sv_client->lastuserinfocount = 0;
-			sv_client->lastuserinfotime = curtime;
+			sv_client->lastuserinfotime  = curtime;
 		}
 		else if (++(sv_client->lastuserinfocount) > (int)sv_kickuserinfospamcount.value)
 		{
@@ -2329,12 +2329,10 @@ static void Cmd_SetInfo_f (void)
 			{
 				saved_state = sv_client->state;
 				sv_client->state = cs_free;
-				SV_BroadcastPrintf (PRINT_HIGH,
-				                    "%s was kicked for userinfo spam\n", sv_client->name);
+				SV_BroadcastPrintf(PRINT_HIGH, "%s was kicked for userinfo spam\n", sv_client->name);
 				sv_client->state = saved_state;
-				SV_ClientPrintf (sv_client, PRINT_HIGH,
-			    	             "You were kicked from the game for userinfo spamming\n");
-				SV_LogPlayer (sv_client, "userinfo spam", 1);
+				SV_ClientPrintf(sv_client, PRINT_HIGH, "You were kicked from the game for userinfo spamming\n");
+				SV_LogPlayer(sv_client, "userinfo spam", 1);
 				sv_client->drop = true;
 			}
 			return;
@@ -2344,30 +2342,30 @@ static void Cmd_SetInfo_f (void)
 	switch (Cmd_Argc())
 	{
 		case 1:
-			Con_Printf ("User info settings:\n");
+			Con_Printf("User info settings:\n");
 
 			Info_ReverseConvert(&sv_client->_userinfo_ctx_, info, sizeof(info));
 			Info_Print(info);
-			Con_DPrintf ("[%d/%d]\n", strlen(info), sizeof(info));
+			Con_DPrintf("[%d/%d]\n", strlen(info), sizeof(info));
 
 			if (developer.value)
 			{
-				Con_Printf ("User info settings short:\n");
+				Con_Printf("User info settings short:\n");
 				Info_ReverseConvert(&sv_client->_userinfoshort_ctx_, info, sizeof(info));
 				Info_Print(info);
-				Con_DPrintf ("[%d/%d]\n", strlen(info), sizeof(info));
+				Con_DPrintf("[%d/%d]\n", strlen(info), sizeof(info));
 			}
 
 			return;
 		case 3:
 			break;
 		default:
-			Con_Printf ("usage: setinfo [ <key> <value> ]\n");
+			Con_Printf("usage: setinfo [ <key> <value> ]\n");
 			return;
 	}
 
 	if (Cmd_Argv(1)[0] == '*')
-		return;		// don't set priveledged values
+		return;		// don't set privileged values
 
 	if (strstr(Cmd_Argv(1), "\\") || strstr(Cmd_Argv(2), "\\"))
 		return;		// illegal char
@@ -2378,12 +2376,10 @@ static void Cmd_SetInfo_f (void)
 	// OfN - Migration
 	if (prozacmod_loaded)
 	{
-		if (!strcmp(Cmd_Argv(1), "team")
-			|| !strcmp(Cmd_Argv(1), "skin")
-			|| !strcmp(Cmd_Argv(1), "bottomcolor")
-			|| !strcmp(Cmd_Argv(1), "topcolor"))
+		if (!strcmp(Cmd_Argv(1), "team") || !strcmp(Cmd_Argv(1), "skin") || !strcmp(Cmd_Argv(1), "bottomcolor") ||
+		    !strcmp(Cmd_Argv(1), "topcolor"))
 			return; // Return and ignore client message
-	}				
+	}
 	// OfN End
 
 	strlcpy(oldval, Info_Get(&sv_client->_userinfo_ctx_, Cmd_Argv(1)), sizeof(oldval));
@@ -2393,10 +2389,9 @@ static void Cmd_SetInfo_f (void)
 	if (PR_UserInfoChanged())
 		return; // does not allowed to be changed by mod.
 
-	Info_Set (&sv_client->_userinfo_ctx_, Cmd_Argv(1), Cmd_Argv(2));
+	Info_Set(&sv_client->_userinfo_ctx_, Cmd_Argv(1), Cmd_Argv(2));
 	// name is extracted below in ExtractFromUserInfo
-	//	strlcpy (sv_client->name, Info_ValueForKey (sv_client->userinfo, "name")
-	//		, CLIENT_NAME_LEN);
+	//	strlcpy(sv_client->name, Info_ValueForKey (sv_client->userinfo, "name"), CLIENT_NAME_LEN);
 	//	SV_FullClientUpdate (sv_client, &sv.reliable_datagram);
 	//	sv_client->sendinfo = true;
 
@@ -2419,14 +2414,14 @@ static void Cmd_SetInfo_f (void)
 		{
 			SV_ClientPrintf(sv_client, PRINT_CHAT,
 			                "You can't change your name while logged in on this server.\n");
-			Info_Set (&sv_client->_userinfo_ctx_, "name", sv_client->login);
-			strlcpy (sv_client->name, sv_client->login, CLIENT_NAME_LEN);
-			MSG_WriteByte (&sv_client->netchan.message, svc_stufftext);
-			MSG_WriteString (&sv_client->netchan.message,
-			                 va("name %s\n", sv_client->login));
-			MSG_WriteByte (&sv_client->netchan.message, svc_stufftext);
-			MSG_WriteString (&sv_client->netchan.message,
-			                 va("setinfo name %s\n", sv_client->login));
+			Info_Set(&sv_client->_userinfo_ctx_, "name", sv_client->login);
+			strlcpy(sv_client->name, sv_client->login, CLIENT_NAME_LEN);
+			MSG_WriteByte(&sv_client->netchan.message, svc_stufftext);
+			MSG_WriteString(&sv_client->netchan.message,
+			                va("name %s\n", sv_client->login));
+			MSG_WriteByte(&sv_client->netchan.message, svc_stufftext);
+			MSG_WriteString(&sv_client->netchan.message,
+			                va("setinfo name %s\n", sv_client->login));
 			return;
 		}
 		//<-
@@ -2446,12 +2441,10 @@ static void Cmd_SetInfo_f (void)
 			{
 				saved_state = sv_client->state;
 				sv_client->state = cs_free;
-				SV_BroadcastPrintf (PRINT_HIGH,
-				                    "%s was kicked for topcolor spam\n", sv_client->name);
+				SV_BroadcastPrintf(PRINT_HIGH, "%s was kicked for topcolor spam\n", sv_client->name);
 				sv_client->state = saved_state;
-				SV_ClientPrintf (sv_client, PRINT_HIGH,
-				                 "You were kicked from the game for topcolor spamming\n");
-				SV_LogPlayer (sv_client, "topcolor spam", 1);
+				SV_ClientPrintf(sv_client, PRINT_HIGH, "You were kicked from the game for topcolor spamming\n");
+				SV_LogPlayer(sv_client, "topcolor spam", 1);
 				sv_client->drop = true;
 			}
 			return;
@@ -2459,15 +2452,15 @@ static void Cmd_SetInfo_f (void)
 	}
 	//<-
 
-	ProcessUserInfoChange (sv_client, Cmd_Argv (1), oldval);
+	ProcessUserInfoChange(sv_client, Cmd_Argv (1), oldval);
 }
 
-void ProcessUserInfoChange (client_t* sv_client, const char* key, const char* old_value)
+void ProcessUserInfoChange(client_t* sv_client, const char* key, const char* old_value)
 {
 	int i;
 
 	// process any changed values
-	SV_ExtractFromUserinfo (sv_client, !strcmp(key, "name"));
+	SV_ExtractFromUserinfo(sv_client, !strcmp(key, "name"));
 
 	if (mod_UserInfo_Changed)
 	{
@@ -2476,7 +2469,7 @@ void ProcessUserInfoChange (client_t* sv_client, const char* key, const char* ol
 		PR_SetTmpString(&G_INT(OFS_PARM0), key);
 		PR_SetTmpString(&G_INT(OFS_PARM1), old_value);
 		PR_SetTmpString(&G_INT(OFS_PARM2), Info_Get(&sv_client->_userinfo_ctx_, key));
-		PR_ExecuteProgram (mod_UserInfo_Changed);
+		PR_ExecuteProgram(mod_UserInfo_Changed);
 	}
 
 	for (i = 0; shortinfotbl[i] != NULL; i++)
@@ -2485,13 +2478,13 @@ void ProcessUserInfoChange (client_t* sv_client, const char* key, const char* ol
 		{
 			char *nuw = Info_Get(&sv_client->_userinfo_ctx_, key);
 
-			Info_SetStar (&sv_client->_userinfoshort_ctx_, key, nuw);
+			Info_SetStar(&sv_client->_userinfoshort_ctx_, key, nuw);
 
 			i = sv_client - svs.clients;
-			MSG_WriteByte (&sv.reliable_datagram, svc_setinfo);
-			MSG_WriteByte (&sv.reliable_datagram, i);
-			MSG_WriteString (&sv.reliable_datagram, key);
-			MSG_WriteString (&sv.reliable_datagram, nuw);
+			MSG_WriteByte(&sv.reliable_datagram, svc_setinfo);
+			MSG_WriteByte(&sv.reliable_datagram, i);
+			MSG_WriteString(&sv.reliable_datagram, key);
+			MSG_WriteString(&sv.reliable_datagram, nuw);
 			break;
 		}
 	}
@@ -2504,9 +2497,9 @@ SV_ShowServerinfo_f
 Dumps the serverinfo info string
 ==================
 */
-static void Cmd_ShowServerinfo_f (void)
+static void Cmd_ShowServerinfo_f(void)
 {
-	Info_Print (svs.info);
+	Info_Print(svs.info);
 }
 
 static void Cmd_NoSnap_f(void)
@@ -2514,7 +2507,7 @@ static void Cmd_NoSnap_f(void)
 	if (*sv_client->uploadfn)
 	{
 		*sv_client->uploadfn = 0;
-		SV_BroadcastPrintf (PRINT_HIGH, "%s refused remote screenshot\n", sv_client->name);
+		SV_BroadcastPrintf(PRINT_HIGH, "%s refused remote screenshot\n", sv_client->name);
 	}
 }
 
@@ -2523,7 +2516,7 @@ static void Cmd_NoSnap_f(void)
 Cmd_MinPing_f
 ==============
 */
-static void Cmd_MinPing_f (void)
+static void Cmd_MinPing_f(void)
 {
 	float minping;
 	switch (Cmd_Argc())
