@@ -3729,8 +3729,23 @@ void PF_getlocaltime(void)
 ddef_t* ED_FindGlobal(char* name); // PZ: forward declaration
 ddef_t* ED_FindField(char* name);  // PZ: forward declaration
 
-// PZ: This is from CPQWSV. Putting it here for convenience. If you decide to incorporate this code into your server,
-//     I suggest putting it somewhere else, or writing your own.
+// PZ: These two are from CPQWSV. Putting them here for convenience. If you decide to incorporate this code into your server,
+//     I suggest putting these somewhere else, or writing your own.
+// PZ NOTE: Gets the float value for progs global variable named by `str`.
+float KK_Global_Float(const char* str)            // PZ: added 'const' for C++
+{
+	ddef_t* def = ED_FindGlobal(str);
+	eval_t* val;
+
+	if (def)
+	{
+		//Sys_Printf("ofs = %04X\n", (unsigned int)def->ofs);
+		val = (eval_t*)&pr_globals[def->ofs];
+		return val->_float;
+	}
+	return -1.0;
+}
+
 // PZ NOTE: Get's the client's `team_no` field.
 int KK_Team_No(client_t* cl)
 {
@@ -3758,39 +3773,31 @@ void(entity client, string key, string value) setinfo
 */
 void PF_setinfo(void)
 {
-	edict_t* client;
-	char* key;
-	char* value;
-	int i, e_num, teamNum, clientIndex;
-	client_t* clientstruct, * cl;
-	ddef_t* def;            // PZ
-
+	edict_t*  clientEdict;
+	char*     key;
+	char*     value;
+	int       i, e_num, teamNum, clientIndex;
+	client_t* thisClient, * cl;
+	
 	// PZ: Ported this to MVDSV/PQWSV from CPQWSV, SV_SetInfo_f(). (January 2, 2023)
 	// WK: Variables for the spy color hack logic, most can be eliminated...
-	int playing_tf    = 1;  // boolean
-	int teamCount     = 0;  //(int)KK_Global_Float("number_of_teams");
-	def = ED_FindGlobal("number_of_teams");
-	if (def) teamCount = ((eval_t*)&pr_globals[def->ofs])->_float;
-	else     teamCount = 2; // PZ: This shouldn't happen, but if it does, whatever.
-	//int same_team   = 0;  // Set TRUE if players are on the same team. (boolean)
-	int chosen_color  = 0;  // the color the client is changing to
-	int correct_color = 0;  // If resetting, set to the reset color of the team. (boolean)
-	int myteam        = 0;  // Holds the team number of the active client.
+	int arePlayingTF = 1,    teamCount = KK_Global_Float("number_of_teams");
+	int instructedColor = 0, useInstructedColor = 0, teamOfThisClient = 0;
 	//ctxinfo_t fakeUserInfo; //char info[MAX_INFO_STRING]; // PZ: For WK's mod. Was character array in CPQWSV.
 	// PZ: You don't need to fake the entire userinfo, at least not in this function the way Shaka did it, with the functionality
 	//     limited to this function. Faking the userinfo, with MVDSV's modifications, is taking time to figure out how to do it,
 	//     due to a lack of code documentation. I don't need it for what we're doing here, anyway. So just hold the value in an int.
-	int fakeBottomColor = 0;
-	char fakeBottomColorStr[8] = "";
+	int  trueBottomColor = 0;
+	char trueBottomColorStr[8] = "";
 	// PZ: END section of WK modification port.
 
 	char oldval[MAX_EXT_INFO_STRING];
 
-	client = G_EDICT(OFS_PARM0);
+	clientEdict = G_EDICT(OFS_PARM0);
 	key    = G_STRING(OFS_PARM1);
 	value  = G_STRING(OFS_PARM2);
 
-	e_num = NUM_FOR_EDICT(client);
+	e_num = NUM_FOR_EDICT(clientEdict);
 	
 	if (strstr(key, "\"") || strstr(value, "\""))
 		return;
@@ -3802,23 +3809,22 @@ void PF_setinfo(void)
 		return;
 	}
 
-	// Edict is a client.
-	clientstruct = &svs.clients[e_num - 1];
-	clientIndex  = clientstruct - svs.clients;
+	// Get some information.
+	thisClient       = &svs.clients[e_num - 1];
+	clientIndex      = thisClient - svs.clients;
+	teamOfThisClient = KK_Team_No(thisClient);
 
-	strcpy(oldval, Info_Get(&clientstruct->_userinfo_ctx_, key));
+	strcpy(oldval, Info_Get(&thisClient->_userinfo_ctx_, key));
 
-	Info_Set(&clientstruct->_userinfo_ctx_, key, value);
-	Info_SetStar(&clientstruct->_userinfoshort_ctx_, key, value);
+	Info_Set(&thisClient->_userinfo_ctx_, key, value);
+	Info_SetStar(&thisClient->_userinfoshort_ctx_, key, value);
 
-	if (!strcmp(Info_Get(&clientstruct->_userinfo_ctx_, key), oldval))
+	if (!strcmp(Info_Get(&thisClient->_userinfo_ctx_, key), oldval))
 		return; // Key hasn't changed.
 
 	// Process any changed values.
 	// NEEDED? don't think so --> // SV_ExtractFromUserinfo(host_client);
-	SV_ExtractFromUserinfo(clientstruct, false); // July 2020
-
-//===========================================================
+	SV_ExtractFromUserinfo(thisClient, false); // July 2020
 
 	// PZ: Ported this to MVDSV/PQWSV from CPQWSV, SV_SetInfo_f(). (January 2, 2023)
 	/* WK 1/7/7 Spy Color Hack WOWOW
@@ -3827,88 +3833,84 @@ void PF_setinfo(void)
 	   so that you and your friends know that you are indeed disguised.
 	   Has enough logic to enable itself only during TF games.
 	*/
-	#define COLOR_TEAM_0     0
-	#define S_COLOR_TEAM_0   "0"
-	#define COLOR_TEAM_1     13
-	#define S_COLOR_TEAM_1   "13"
-	#define COLOR_TEAM_2     4
-	#define S_COLOR_TEAM_2   "4"
-	#define COLOR_TEAM_3     12
-	#define S_COLOR_TEAM_3   "12"
-	#define COLOR_TEAM_4     11
-	#define S_COLOR_TEAM_4   "11"
-	#define COLOR_TEAMKILLER 8
+	const int  COLOR_TEAM_0     = 0;    //const char S_COLOR_TEAM_0[] = "0";
+	const int  COLOR_TEAM_1     = 13;   //const char S_COLOR_TEAM_1[] = "13";
+	const int  COLOR_TEAM_2     = 4;    //const char S_COLOR_TEAM_2[] = "4";
+	const int  COLOR_TEAM_3     = 12;   //const char S_COLOR_TEAM_3[] = "12";
+	const int  COLOR_TEAM_4     = 11;   //const char S_COLOR_TEAM_4[] = "11";
+	const int  COLOR_TEAMKILLER = 8;
 
-	if (/*!strcmp(key, "topcolor") ||*/ !strcmp(key, "bottomcolor"))
+	// We only do the spy color hack in TF games with people on a team.
+	if      (teamCount < 1 || teamCount > 4)                             arePlayingTF = 0;
+	else if (strcmp(Info_ValueForKey(svs.info, "*gamedir"), "fortress")) arePlayingTF = 0;
+	// PZ: Don't alter the colors in Neo mode.
+	else if (KK_Global_Float("neo"))                                     arePlayingTF = 0;
+
+	if ((/*!strcmp(key, "topcolor") ||*/ !strcmp(key, "bottomcolor")) && arePlayingTF)
 	{
-		// Figure out the logic. We only do the spy color hack in TF games with people on a team.
-		myteam = KK_Team_No(clientstruct);
-		if (teamCount < 1 || teamCount > 4) playing_tf = 0;
-		if (strcmp(Info_ValueForKey(svs.info, "*gamedir"), "fortress")) playing_tf = 0;
-		chosen_color = atoi(Info_Get(&clientstruct->_userinfo_ctx_, key));
-
-		// `correct_color` only gets set if we're resetting our color to where it should be.
-		// (If we are switching to our correct color, we allow everyone to see the reset.)
-		if ((myteam == 0 && chosen_color == COLOR_TEAM_0) ||
-		    (myteam == 1 && chosen_color == COLOR_TEAM_1) ||
-		    (myteam == 2 && chosen_color == COLOR_TEAM_2) ||
-		    (myteam == 3 && chosen_color == COLOR_TEAM_3) ||
-		    (myteam == 4 && chosen_color == COLOR_TEAM_4))   correct_color = 1;
-		if (chosen_color == COLOR_TEAMKILLER)                correct_color = 1; // Handle TKers.
+		instructedColor = atoi(Info_Get(&thisClient->_userinfo_ctx_, key));
+		// `useInstructedColor` only gets set if we're resetting our color to where it should be.
+		// (If we are switching to our true color, we allow everyone to see the reset.)
+		if ((teamOfThisClient == 0 && instructedColor == COLOR_TEAM_0) ||
+		    (teamOfThisClient == 1 && instructedColor == COLOR_TEAM_1) ||
+		    (teamOfThisClient == 2 && instructedColor == COLOR_TEAM_2) ||
+		    (teamOfThisClient == 3 && instructedColor == COLOR_TEAM_3) ||
+		    (teamOfThisClient == 4 && instructedColor == COLOR_TEAM_4)) useInstructedColor = 1;
+		if (instructedColor == COLOR_TEAMKILLER)                        useInstructedColor = 1; // Handle TKers.
 		
-		//Sys_Printf("Color Change to %i. (myteam: %i)\n", chosen_color, myteam);
-		//if (correct_color) Sys_Printf("(Colors Reset)\n");
+		//Sys_Printf("Color Change to %i. (teamOfThisClient: %i)\n", instructedColor, teamOfThisClient);
+		//if (useInstructedColor) Sys_Printf("(Colors Reset)\n");
 		//else Sys_Printf("(Disguising)\n");
 
 		// `fakeUserInfo` holds a modified copy of `_userinfo_ctx_` to be sent out to his teammates.
 		// `_userinfo_ctx_`, the real data, gets sent to his enemies, instead.
-		//memcpy(&fakeUserInfo, &clientstruct->_userinfo_ctx_, sizeof (ctxinfo_t));
+		//memcpy(&fakeUserInfo, &thisClient->_userinfo_ctx_, sizeof (ctxinfo_t));
 		// PZ: I don't think you can do a memcpy on `ctxinfo_t`s because they contain pointers (lists).
-		//Info_CopyStar(&clientstruct->_userinfo_ctx_, &fakeUserInfo);
-		//Info_Set(&fakeUserInfo, "topcolor", Info_Get(&clientstruct->_userinfo_ctx_, key));
-		if (myteam == 0) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ fakeBottomColor = COLOR_TEAM_0;
-		if (myteam == 1) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ fakeBottomColor = COLOR_TEAM_1;
-		if (myteam == 2) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ fakeBottomColor = COLOR_TEAM_2;
-		if (myteam == 3) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ fakeBottomColor = COLOR_TEAM_3;
-		if (myteam == 4) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ fakeBottomColor = COLOR_TEAM_4;
+		//Info_CopyStar(&thisClient->_userinfo_ctx_, &fakeUserInfo);
+		//Info_Set(&fakeUserInfo, "topcolor", Info_Get(&thisClient->_userinfo_ctx_, key));
+		if (teamOfThisClient == 0) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ trueBottomColor = COLOR_TEAM_0;
+		if (teamOfThisClient == 1) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ trueBottomColor = COLOR_TEAM_1;
+		if (teamOfThisClient == 2) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ trueBottomColor = COLOR_TEAM_2;
+		if (teamOfThisClient == 3) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ trueBottomColor = COLOR_TEAM_3;
+		if (teamOfThisClient == 4) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ trueBottomColor = COLOR_TEAM_4;
 		// Handle Resetting Colors correctly
-		if (correct_color) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ fakeBottomColor = atoi(Info_Get(&clientstruct->_userinfo_ctx_, key));
+		if (useInstructedColor) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ trueBottomColor = atoi(Info_Get(&thisClient->_userinfo_ctx_, key));
 
-		// Now, broadcast the `fakeBottomColor` to all teammates, and the normal userinfo to all enemies.
+		// Now, broadcast the `trueBottomColor` to all teammates, and the disguised bottomcolor to all enemies.
 		for (i = 0, cl = svs.clients; i < MAX_CLIENTS; i++, cl++)
 		{
-			if (cl->state == cs_free) continue;
+			if (cl->state != cs_spawned && cl->state != cs_connected) continue;
 			Sys_Printf("##################### Sending svc_setinfo #####################\n");
 			ClientReliableWrite_Begin(cl, svc_setinfo, 18);
 			ClientReliableWrite_Byte(cl, clientIndex);
 			ClientReliableWrite_String(cl, key);
 			teamNum = KK_Team_No(cl);
-			if (teamNum == myteam && teamNum != 0 && playing_tf)
+			if (teamNum == teamOfThisClient && teamNum != 0)
 			{
-				//Sys_Printf("Client %i is on same team (team %i) as color changer, info sent\n", cl->userid, myteam);
-				sprintf(fakeBottomColorStr, "%d", fakeBottomColor);
-				ClientReliableWrite_String(cl, /*Info_Get(&fakeUserInfo, key)*/ fakeBottomColorStr);
+				//Sys_Printf("Client %i is on same team (team %i) as color changer, info sent\n", cl->userid, teamOfThisClient);
+				sprintf(trueBottomColorStr, "%d", trueBottomColor);
+				ClientReliableWrite_String(cl, /*Info_Get(&fakeUserInfo, key)*/ trueBottomColorStr);
 			}
 			else
-				ClientReliableWrite_String(cl, Info_Get(&clientstruct->_userinfo_ctx_, key));
+				ClientReliableWrite_String(cl, Info_Get(&thisClient->_userinfo_ctx_, key));
 		}
 	}
 	else
 	{
-		// Not a color change. So pass it on as before.
+		// Not a bottomcolor change. So pass it on as before.
 		MSG_WriteByte(&sv.reliable_datagram, svc_setinfo);
 		MSG_WriteByte(&sv.reliable_datagram, clientIndex);
 		MSG_WriteString(&sv.reliable_datagram, key);
-		MSG_WriteString(&sv.reliable_datagram, Info_Get(&clientstruct->_userinfo_ctx_, key));
+		MSG_WriteString(&sv.reliable_datagram, Info_Get(&thisClient->_userinfo_ctx_, key));
 	}
 
 //===========================================================
 
-	//clientIndex = clientstruct - svs.clients;
+	//clientIndex = thisClient - svs.clients;
 	//MSG_WriteByte(&sv.reliable_datagram, svc_setinfo);
 	//MSG_WriteByte(&sv.reliable_datagram, clientIndex);
 	//MSG_WriteString(&sv.reliable_datagram, key);
-	//MSG_WriteString(&sv.reliable_datagram, Info_Get(&clientstruct->_userinfo_ctx_, key));
+	//MSG_WriteString(&sv.reliable_datagram, Info_Get(&thisClient->_userinfo_ctx_, key));
 }
 
 /* 2020 July
