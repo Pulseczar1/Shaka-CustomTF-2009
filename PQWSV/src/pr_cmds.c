@@ -3726,13 +3726,13 @@ void PF_getlocaltime(void)
 	RETURN_STRING(result);
 }
 
-ddef_t* ED_FindGlobal(char* name); // PZ: forward declaration
-ddef_t* ED_FindField(char* name);  // PZ: forward declaration
+ddef_t* ED_FindGlobal(const char* name); // PZ: forward declaration
+ddef_t* ED_FindField(char* name);        // PZ: forward declaration
 
 // PZ: These two are from CPQWSV. Putting them here for convenience. If you decide to incorporate this code into your server,
 //     I suggest putting these somewhere else, or writing your own.
 // PZ NOTE: Gets the float value for progs global variable named by `str`.
-float KK_Global_Float(const char* str)            // PZ: added 'const' for C++
+float KK_Global_Float(const char* str)
 {
 	ddef_t* def = ED_FindGlobal(str);
 	eval_t* val;
@@ -3746,7 +3746,7 @@ float KK_Global_Float(const char* str)            // PZ: added 'const' for C++
 	return -1.0;
 }
 
-// PZ NOTE: Get's the client's `team_no` field.
+// PZ NOTE: Gets the client's `team_no` field.
 int KK_Team_No(client_t* cl)
 {
 	int team;
@@ -3757,6 +3757,7 @@ int KK_Team_No(client_t* cl)
 	if (!team_no || cl->spectator) return 0;
 
 	eval_t* val;
+	// PZ: I don't understand why I had this comment here, but multiplying by 4 did seem to fix this function.
 	val  = (eval_t*)((char*)&cl->edict->v + team_no->ofs*4); // PZ NOTE: This offset may need to be multiplied by 4 for the QuakeC VM.
 	team = (int)val->_float;
 
@@ -3771,146 +3772,120 @@ PF_setinfo
 void(entity client, string key, string value) setinfo
 ==============
 */
-void PF_setinfo(void)
+void PF_setinfo()
 {
-	edict_t*  clientEdict;
-	char*     key;
-	char*     value;
-	int       i, e_num, teamNum, clientIndex;
-	client_t* thisClient, * cl;
-	
-	// PZ: Ported this to MVDSV/PQWSV from CPQWSV, SV_SetInfo_f(). (January 2, 2023)
-	// WK: Variables for the spy color hack logic, most can be eliminated...
-	int arePlayingTF = 1,    teamCount = KK_Global_Float("number_of_teams");
-	int instructedColor = 0, useInstructedColor = 0, teamOfThisClient = 0;
-	//ctxinfo_t fakeUserInfo; //char info[MAX_INFO_STRING]; // PZ: For WK's mod. Was character array in CPQWSV.
-	// PZ: You don't need to fake the entire userinfo, at least not in this function the way Shaka did it, with the functionality
-	//     limited to this function. Faking the userinfo, with MVDSV's modifications, is taking time to figure out how to do it,
-	//     due to a lack of code documentation. I don't need it for what we're doing here, anyway. So just hold the value in an int.
-	int  trueBottomColor = 0;
-	char trueBottomColorStr[8] = "";
-	// PZ: END section of WK modification port.
+	// Get arguments from progs.
+	edict_t*  clientEdict    = G_EDICT(OFS_PARM0);
+	char*     key            = G_STRING(OFS_PARM1);
+	char*     value          = G_STRING(OFS_PARM2);
+	int       clientEdictNum = NUM_FOR_EDICT(clientEdict);
+	// Get client structure.
+	client_t* thisClient     = &svs.clients[clientEdictNum - 1];
+	int       clientIndex    = thisClient - svs.clients;
 
-	char oldval[MAX_EXT_INFO_STRING];
-
-	clientEdict = G_EDICT(OFS_PARM0);
-	key    = G_STRING(OFS_PARM1);
-	value  = G_STRING(OFS_PARM2);
-
-	e_num = NUM_FOR_EDICT(clientEdict);
-	
+	// Ignore keys/values containing double-quotes.
 	if (strstr(key, "\"") || strstr(value, "\""))
 		return;
 
-	// If edict is 'world', set a starred serverinfo on server.
-	if (e_num == 0)
+	// If edict is `world`, set a starred key in the serverinfo.
+	if (clientEdictNum == 0)
 	{
 		Info_SetValueForStarKey(svs.info, key, value, MAX_SERVERINFO_STRING);
 		return;
 	}
 
-	// Get some information.
-	thisClient       = &svs.clients[e_num - 1];
-	clientIndex      = thisClient - svs.clients;
-	teamOfThisClient = KK_Team_No(thisClient);
-
+	// Store the previous value for this client's `key`.
+	char oldval[MAX_EXT_INFO_STRING];
 	strcpy(oldval, Info_Get(&thisClient->_userinfo_ctx_, key));
 
+	// Write the new value for this client's `key` to both its normal userinfo and short userinfo.
 	Info_Set(&thisClient->_userinfo_ctx_, key, value);
 	Info_SetStar(&thisClient->_userinfoshort_ctx_, key, value);
 
+	// If the new value is the same as the old value, stop here.
+	// PZ NOTE: Not sure why you bother writing it, if it's the same, but whatever.
 	if (!strcmp(Info_Get(&thisClient->_userinfo_ctx_, key), oldval))
-		return; // Key hasn't changed.
+		return;
 
-	// Process any changed values.
-	// NEEDED? don't think so --> // SV_ExtractFromUserinfo(host_client);
+	// Process any changed values. PZ NOTE: This updates some server data with the new userinfo data.
 	SV_ExtractFromUserinfo(thisClient, false); // July 2020
 
-	// PZ: Ported this to MVDSV/PQWSV from CPQWSV, SV_SetInfo_f(). (January 2, 2023)
-	/* WK 1/7/7 Spy Color Hack WOWOW
-	   Send spy color changes to enemies only.
-	   Yourself and teammates see you in your team's colors (bottomcolor), with a topcolor of the enemy,
-	   so that you and your friends know that you are indeed disguised.
-	   Has enough logic to enable itself only during TF games.
-	*/
-	const int  COLOR_TEAM_0     = 0;    //const char S_COLOR_TEAM_0[] = "0";
-	const int  COLOR_TEAM_1     = 13;   //const char S_COLOR_TEAM_1[] = "13";
-	const int  COLOR_TEAM_2     = 4;    //const char S_COLOR_TEAM_2[] = "4";
-	const int  COLOR_TEAM_3     = 12;   //const char S_COLOR_TEAM_3[] = "12";
-	const int  COLOR_TEAM_4     = 11;   //const char S_COLOR_TEAM_4[] = "11";
-	const int  COLOR_TEAMKILLER = 8;
-
-	// We only do the spy color hack in TF games with people on a team.
-	if      (teamCount < 1 || teamCount > 4)                             arePlayingTF = 0;
-	else if (strcmp(Info_ValueForKey(svs.info, "*gamedir"), "fortress")) arePlayingTF = 0;
-	// PZ: Don't alter the colors in Neo mode.
-	else if (KK_Global_Float("neo"))                                     arePlayingTF = 0;
-
-	if ((/*!strcmp(key, "topcolor") ||*/ !strcmp(key, "bottomcolor")) && arePlayingTF)
+	// PZ: Ported this to MVDSV/PQWSV from CPQWSV, SV_SetInfo_f(). (January 9, 2023)
+	// WK: Spy Color Hack (1/7/2007)
+	// Send spy color changes to enemies only. Yourself and teammates see you in your team's colors (bottomcolor), with
+	// a topcolor of the enemy, so that you and your friends know that you are indeed disguised. Has enough logic to
+	// enable itself only during TF games.
+	// PZ: I rewrote this code. All this needs to do is, when a spy is disguised, send his disguised bottomcolor to
+	// enemies, and his undisguised bottomcolor to teammates. The game normally sends the disguised color to everyone.
+	// So, we are overriding the bottomcolor only when sending the color to teammates of the spy. This should function
+	// pretty much identical to how Shaka had it working. I just didn't like how the code was structured.
+	// FIXME: This code is deficient in that players joining/leaving/changing teams won't receive an update for the
+	// color of each already-disguised spy, to make sure they receive the color we want them to have, depending on
+	// whether they are a teammate of each disguised spy. That seems to be a problem in Shaka's original code. I'll
+	// leave this for myself, or someone else, to fix later. See: https://github.com/Pulseczar1/Shaka-CustomTF-2009/issues/
+	qbool overrideSent = false;
+	// We only potentially override `bottomcolor` userinfo keys.
+	if (!strcmp(key, "bottomcolor"))
 	{
-		instructedColor = atoi(Info_Get(&thisClient->_userinfo_ctx_, key));
-		// `useInstructedColor` only gets set if we're resetting our color to where it should be.
-		// (If we are switching to our true color, we allow everyone to see the reset.)
-		if ((teamOfThisClient == 0 && instructedColor == COLOR_TEAM_0) ||
-		    (teamOfThisClient == 1 && instructedColor == COLOR_TEAM_1) ||
-		    (teamOfThisClient == 2 && instructedColor == COLOR_TEAM_2) ||
-		    (teamOfThisClient == 3 && instructedColor == COLOR_TEAM_3) ||
-		    (teamOfThisClient == 4 && instructedColor == COLOR_TEAM_4)) useInstructedColor = 1;
-		if (instructedColor == COLOR_TEAMKILLER)                        useInstructedColor = 1; // Handle TKers.
-		
-		//Sys_Printf("Color Change to %i. (teamOfThisClient: %i)\n", instructedColor, teamOfThisClient);
-		//if (useInstructedColor) Sys_Printf("(Colors Reset)\n");
-		//else Sys_Printf("(Disguising)\n");
+		// Determine whether we are playing a game mode for which we should not alter bottomcolors.
+		qbool performBottomColorOverride = true;
+		int teamCount = KK_Global_Float("number_of_teams"); // PZ NOTE: It seems like it should be: teamCount < 2 || teamCount > 4
+		if      (teamCount < 1 || teamCount > 4)                             performBottomColorOverride = false;
+		else if (strcmp(Info_ValueForKey(svs.info, "*gamedir"), "fortress")) performBottomColorOverride = false;
+		// Don't alter the colors in Neo mode.
+		else if (KK_Global_Float("neo"))                                     performBottomColorOverride = false;
 
-		// `fakeUserInfo` holds a modified copy of `_userinfo_ctx_` to be sent out to his teammates.
-		// `_userinfo_ctx_`, the real data, gets sent to his enemies, instead.
-		//memcpy(&fakeUserInfo, &thisClient->_userinfo_ctx_, sizeof (ctxinfo_t));
-		// PZ: I don't think you can do a memcpy on `ctxinfo_t`s because they contain pointers (lists).
-		//Info_CopyStar(&thisClient->_userinfo_ctx_, &fakeUserInfo);
-		//Info_Set(&fakeUserInfo, "topcolor", Info_Get(&thisClient->_userinfo_ctx_, key));
-		if (teamOfThisClient == 0) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ trueBottomColor = COLOR_TEAM_0;
-		if (teamOfThisClient == 1) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ trueBottomColor = COLOR_TEAM_1;
-		if (teamOfThisClient == 2) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ trueBottomColor = COLOR_TEAM_2;
-		if (teamOfThisClient == 3) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ trueBottomColor = COLOR_TEAM_3;
-		if (teamOfThisClient == 4) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ trueBottomColor = COLOR_TEAM_4;
-		// Handle Resetting Colors correctly
-		if (useInstructedColor) /*Info_Set(&fakeUserInfo, "bottomcolor",*/ trueBottomColor = atoi(Info_Get(&thisClient->_userinfo_ctx_, key));
-
-		// Now, broadcast the `trueBottomColor` to all teammates, and the disguised bottomcolor to all enemies.
-		for (i = 0, cl = svs.clients; i < MAX_CLIENTS; i++, cl++)
+		if (performBottomColorOverride)
 		{
-			if (cl->state != cs_spawned && cl->state != cs_connected) continue;
-			Sys_Printf("##################### Sending svc_setinfo #####################\n");
-			ClientReliableWrite_Begin(cl, svc_setinfo, 18);
-			ClientReliableWrite_Byte(cl, clientIndex);
-			ClientReliableWrite_String(cl, key);
-			teamNum = KK_Team_No(cl);
-			if (teamNum == teamOfThisClient && teamNum != 0)
+			// Determine whether this client's color is disguised.
+			const int TEAM_COLORS[] = { 0, 13, 4, 12, 11 }, TEAMKILLER_COLOR = 8;
+			int teamOfThisClient = KK_Team_No(thisClient);
+			int colorInstructed  = atoi(value);
+			qbool isClientColorDisguised = false;
+			if (colorInstructed != TEAM_COLORS[teamOfThisClient] && colorInstructed != TEAMKILLER_COLOR)
+				isClientColorDisguised = true;
+
+			// We only override `bottomcolor` userinfo keys, when this client's color is disguised.
+			if (isClientColorDisguised)
 			{
-				//Sys_Printf("Client %i is on same team (team %i) as color changer, info sent\n", cl->userid, teamOfThisClient);
-				sprintf(trueBottomColorStr, "%d", trueBottomColor);
-				ClientReliableWrite_String(cl, /*Info_Get(&fakeUserInfo, key)*/ trueBottomColorStr);
+				char undisguisedBottomColorStr[8] = "";
+				// Send his teammates his undisguised bottomcolor and his enemies his disguised bottomcolor.
+				client_t* cl = svs.clients;
+				for (int i = 0;   i < MAX_CLIENTS;   ++i, ++cl)
+				{
+					if (cl->state != cs_spawned && cl->state != cs_connected)
+						continue;
+					ClientReliableWrite_Begin(cl, svc_setinfo, 18);
+					ClientReliableWrite_Byte(cl, clientIndex);
+					ClientReliableWrite_String(cl, key);
+					int teamNum = KK_Team_No(cl);
+					// If `i` is a teammate, send this client's undisguised bottomcolor to `i`.
+					if (teamNum == teamOfThisClient && teamNum != 0)
+					{
+						sprintf(undisguisedBottomColorStr, "%d", TEAM_COLORS[teamOfThisClient]);
+						ClientReliableWrite_String(cl, undisguisedBottomColorStr);
+					}
+					// If `i` is not a teammate, send this client's disguised bottomcolor to `i`.
+					// PZ NOTE: Not sure why we don't just send `value`. But I'm not looking through the Info* functions
+					//          to see if it matters. It would be nice to just send `value`, if it doesn't matter.
+					else
+						ClientReliableWrite_String(cl, Info_Get(&thisClient->_userinfo_ctx_, key));
+				}
+				overrideSent = true;
 			}
-			else
-				ClientReliableWrite_String(cl, Info_Get(&thisClient->_userinfo_ctx_, key));
 		}
 	}
-	else
+
+	// Send the data like normal, to all clients at once, if the data was not already sent, above, as an override.
+	if (!overrideSent)
 	{
-		// Not a bottomcolor change. So pass it on as before.
 		MSG_WriteByte(&sv.reliable_datagram, svc_setinfo);
 		MSG_WriteByte(&sv.reliable_datagram, clientIndex);
 		MSG_WriteString(&sv.reliable_datagram, key);
+		// PZ NOTE: Not sure why we don't just send `value`. But I'm not looking through the Info* functions
+		//          to see if it matters. It would be nice to just send `value`, if it doesn't matter.
 		MSG_WriteString(&sv.reliable_datagram, Info_Get(&thisClient->_userinfo_ctx_, key));
 	}
-
-//===========================================================
-
-	//clientIndex = thisClient - svs.clients;
-	//MSG_WriteByte(&sv.reliable_datagram, svc_setinfo);
-	//MSG_WriteByte(&sv.reliable_datagram, clientIndex);
-	//MSG_WriteString(&sv.reliable_datagram, key);
-	//MSG_WriteString(&sv.reliable_datagram, Info_Get(&thisClient->_userinfo_ctx_, key));
 }
 
 /* 2020 July
