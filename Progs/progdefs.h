@@ -1275,10 +1275,10 @@
 #define PR_MSG_OFTEN_CUTFVERSION                "Running progs build 272 Û02¯02¯2009İ\n"                                                                                                      
 #define PR_MSG_INFO                             "\nType ¢cmd help¢ to see additional client commands.\n"                                                                                      
 #define PR_MSG_CUTFVERSION                      "ĞÒÏÚÁÃ CustomÔÆ VERSION 02-02-09"                                                                                                            
-#define PR_MSG_INTRO                            "Welcome to ĞÒÏÚÁÃ CustomÔÆ\na Quake ÔÆ MOD by ShakaUVM\nwww®customtf®com\n\nŸ\n\n"                              
+#define PR_MSG_INTRO                            "Welcome to ĞÒÏÚÁÃ CustomÔÆ\na Quake ÔÆ MOD by ShakaUVM\n\nquakeworld®nu¯wiki¯Prozac-TF\n\nŸ\n\n"                
 #define PR_MSG_INTRO2                           "Based on the aussie ver by SB-1\nModified version by Clan Prozac\n\n"                                                                        
-#define PR_MSG_INTRO3                           "Post bug reports and comments on:\nhttp:¯¯customtf®sourceforge®net¯forum¯"                                                                   
-#define PR_MOTD_FINISHED                        152                                                                                                                                           
+#define PR_MSG_INTRO3                           "Post bug reports and comments on:\nhttpsº¯¯discord®gg¯fp9sSZ5"                                                                               
+#define PR_MOTD_FINISHED                        242                                                                                                                                           
 #define PR_SPRITE_ABLAST                        1                                                                                                                                             
 #define PR_SPRITE_AIRBURST                      2                                                                                                                                             
 #define PR_SPRITEMOVE_UP                        1                                                                                                                                             
@@ -2113,4 +2113,4 @@ typedef struct
 	string_t  noise3;
 } entvars_t;
 
-#define PROGHEADER_CRC 26310
+#define PROGHEADER_CRC 20656

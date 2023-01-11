@@ -3698,6 +3698,8 @@ string() getlocaltime
 ==============
 */
 
+// PZ: I need the year. This function is never called in Shaka's 2009 CustomTF. So, I'm going to use this function
+//     and add the date to the time.
 void PF_getlocaltime(void)
 {
 	char* result;
@@ -3713,14 +3715,18 @@ void PF_getlocaltime(void)
 	time(&t);
 	now = localtime(&t);
 
-	sprintf(tstr, "%02d", now->tm_hour);
+	// PZ: We just need one snprintf() into `result`, don't we?? Just use it with `MAX_BUFFER_STRINGS_LEN`.
+	//     Whatever. I just need the year. I'm just going to send the year. If you ever need more than the
+	//     year, change this.
+	/*sprintf(tstr, "%02d", now->tm_hour);
 	strcat(result, tstr);
 	strcat(result, ":");
 	sprintf(tstr, "%02d", now->tm_min);
 	strcat(result, tstr);
 	strcat(result, ":");
 	sprintf(tstr, "%02d", now->tm_sec);
-	strcat(result, tstr);
+	strcat(result, tstr);*/
+	snprintf(result, MAX_BUFFER_STRINGS_LEN, "%d", now->tm_year + 1900);
 
 	//G_INT(OFS_RETURN) = PR_SetString(result);
 	RETURN_STRING(result);
