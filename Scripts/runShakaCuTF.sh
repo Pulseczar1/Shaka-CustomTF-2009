@@ -7,6 +7,9 @@
 #
 # To start the server, provide a configuration option. For example: ./runShakaCuTF.sh public
 
+# Enable core dump creation when the server crashes (halts).
+ulimit -c unlimited
+
 SCRIPT_NAME="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
 PUBLIC_SERVER_PORT_ADDRESS=27500

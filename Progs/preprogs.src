@@ -37,7 +37,7 @@ items.qc
 admin.qc
 weapons.qc
 world.qc
-status.qc   
+status.qc
 client.qc
 obits.qc
 player.qc
