@@ -741,7 +741,7 @@ void(entity gen1, entity gen2) Remove_Field =
 	soundsoff = #FALSE;
 	
 	if (IsValidFieldGen(gen1))
-	{	
+	{
 		gen1.has_sensor = #FALSE;
 
 		if (IsValidField(gen1.martyr_enemy))
@@ -750,7 +750,9 @@ void(entity gen1, entity gen2) Remove_Field =
 			soundsoff = #TRUE;
 			
 			dremove(gen1.martyr_enemy);
-			gen1.martyr_enemy = world;
+			// PZ: In MVDSV, the field would not reactivate after a friendly player stepped into it, and back out.
+			//     Made the second field generator's field pointer also point to `world`.
+			gen1.martyr_enemy = gen2.martyr_enemy = world;
 		}
 	}
 
@@ -764,7 +766,9 @@ void(entity gen1, entity gen2) Remove_Field =
 				Field_StopSounds(gen2.martyr_enemy); // Stops sounds on force field if not done
 
 			dremove(gen2.martyr_enemy);
-			gen2.martyr_enemy = world;
+			// PZ: In MVDSV, the field would not reactivate after a friendly player stepped into it, and back out.
+			//     Made the first field generator's field pointer also point to `world`.
+			gen2.martyr_enemy = gen1.martyr_enemy = world;
 		}
 	}
 };
